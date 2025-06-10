@@ -1,148 +1,174 @@
-// Global Variables
-const authContainer = document.getElementById('authContainer');
-const dashboard = document.getElementById('dashboard');
-const projectsGrid = document.getElementById('projectsGrid');
-const projectModal = document.getElementById('projectModal');
-const memberSelector = document.getElementById('memberSelector');
-
-let currentUser = null;
-let projects = JSON.parse(localStorage.getItem('projects')) || [];
-let teamMembers = JSON.parse(localStorage.getItem('teamMembers')) || [];
-let currentSection = 'dashboard';
-
 class ProductivityBeast {
     constructor() {
         this.groqAPIKey = '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';
         this.googleSheetId = '1p4BpUlDzCihngl2wIP8LZJakGLylsRPQ2u0-kTa85sk';
-        this.inviteLinks = JSON.parse(localStorage.getItem('inviteLinks')) || [];
+        this.currentUser = null;
+        this.projects = JSON.parse(localStorage.getItem('projects')) || [];
+        this.teamMembers = JSON.parse(localStorage.getItem('teamMembers')) || [];
+        this.currentSection = 'dashboard';
+        this.selectedFormat = null;
         this.init();
     }
 
     init() {
         this.checkAuthState();
-        this.renderInitialData();
         this.setupEventListeners();
+        this.initializeSampleData();
+        this.updateStats();
     }
 
     // Authentication Methods
     checkAuthState() {
         const user = localStorage.getItem('user');
         if (user) {
-            currentUser = JSON.parse(user);
-            authContainer.style.display = 'none';
-            dashboard.style.display = 'grid';
-            this.showSection('dashboard');
+            this.currentUser = JSON.parse(user);
+            this.showDashboard();
+            this.updateUserGreeting();
         }
     }
 
-    handleAuth(event) {
+    handleSignin(event) {
         event.preventDefault();
-        const email = document.getElementById('authEmail').value;
-        const password = document.getElementById('authPassword').value;
+        const email = document.getElementById('signinEmail').value;
+        const password = document.getElementById('signinPassword').value;
         
-        // Simple authentication simulation
-        currentUser = { email, name: email.split('@')[0] };
-        localStorage.setItem('user', JSON.stringify(currentUser));
+        if (!email || !password) {
+            this.showToast('Please fill in all fields', 'error');
+            return;
+        }
         
-        authContainer.style.display = 'none';
-        dashboard.style.display = 'grid';
+        this.currentUser = { email, name: email.split('@')[0] };
+        localStorage.setItem('user', JSON.stringify(this.currentUser));
+        
+        this.showDashboard();
+        this.updateUserGreeting();
+        this.showToast('Successfully signed in!', 'success');
+    }
+
+    handleSignup(event) {
+        event.preventDefault();
+        const name = document.getElementById('signupName').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('signupConfirmPassword').value;
+        
+        if (!name || !email || !password || !confirmPassword) {
+            this.showToast('Please fill in all fields', 'error');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            this.showToast('Passwords do not match', 'error');
+            return;
+        }
+        
+        if (password.length < 6) {
+            this.showToast('Password must be at least 6 characters', 'error');
+            return;
+        }
+        
+        this.currentUser = { email, name };
+        localStorage.setItem('user', JSON.stringify(this.currentUser));
+        
+        // Add user as team leader
+        this.addTeamMember({
+            name: name,
+            email: email,
+            department: 'Management',
+            skills: ['Leadership', 'Project Management'],
+            experienceLevel: 'Senior',
+            phone: '',
+            specialization: 'Team Leadership'
+        });
+        
+        this.showDashboard();
+        this.updateUserGreeting();
+        this.showToast('Account created successfully!', 'success');
+    }
+
+    switchTab(tab) {
+        document.querySelectorAll('.auth-tabs button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const signinForm = document.getElementById('signinForm');
+        const signupForm = document.getElementById('signupForm');
+        
+        if (tab === 'signin') {
+            document.getElementById('signinTab').classList.add('active');
+            signinForm.style.display = 'block';
+            signupForm.style.display = 'none';
+        } else if (tab === 'signup') {
+            document.getElementById('signupTab').classList.add('active');
+            signinForm.style.display = 'none';
+            signupForm.style.display = 'block';
+        }
+    }
+
+    showDashboard() {
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'grid';
         this.showSection('dashboard');
+    }
+
+    updateUserGreeting() {
+        const greeting = document.getElementById('userGreeting');
+        if (greeting && this.currentUser) {
+            greeting.textContent = `Hello, ${this.currentUser.name}!`;
+        }
     }
 
     handleLogout() {
         localStorage.removeItem('user');
-        currentUser = null;
-        authContainer.style.display = 'flex';
-        dashboard.style.display = 'none';
-    }
-
-    switchTab(tab) {
-        document.querySelectorAll('.auth-tabs button').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+        this.currentUser = null;
+        document.getElementById('authContainer').style.display = 'flex';
+        document.getElementById('dashboard').style.display = 'none';
+        this.switchTab('signin');
+        this.showToast('Logged out successfully', 'info');
     }
 
     // Navigation Methods
     showSection(section) {
-        // Hide all sections
-        document.querySelectorAll('.content').forEach(content => {
-            content.style.display = 'none';
+        document.querySelectorAll('.content-section').forEach(content => {
+            content.classList.remove('active');
         });
         
-        // Remove active class from nav buttons
-        document.querySelectorAll('nav button').forEach(btn => {
-            btn.classList.remove('active');
+        document.querySelectorAll('.nav-item').forEach(nav => {
+            nav.classList.remove('active');
         });
         
-        // Show selected section
         const targetSection = document.getElementById(section + 'Section');
         if (targetSection) {
-            targetSection.style.display = 'block';
+            targetSection.classList.add('active');
+            targetSection.classList.add('fade-in');
         }
         
-        // Add active class to current nav button
-        document.querySelector(`[onclick="showSection('${section}')"]`)?.classList.add('active');
+        const targetNav = document.querySelector(`[onclick="showSection('${section}')"]`);
+        if (targetNav) {
+            targetNav.classList.add('active');
+        }
         
-        currentSection = section;
+        this.currentSection = section;
         
         // Load section-specific content
         switch(section) {
             case 'dashboard':
-                this.loadDashboard();
+                this.updateStats();
                 break;
             case 'goals':
-                this.loadGoalsSection();
+                this.renderProjects();
                 break;
             case 'team':
-                this.loadTeamSection();
-                break;
-            case 'analytics':
-                this.loadAnalyticsSection();
+                this.renderTeamMembers();
+                this.populateFilters();
                 break;
         }
     }
 
-    // Dashboard Methods
-    loadDashboard() {
-        const dashboardContent = document.getElementById('dashboardSection');
-        if (!dashboardContent) {
-            this.createDashboardSection();
-        }
-        
-        dashboardContent.innerHTML = `
-            <div class="dashboard-overview">
-                <h3>Dashboard Overview</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h4>Active Projects</h4>
-                        <p class="stat-number">${projects.filter(p => p.status !== 'completed').length}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Team Members</h4>
-                        <p class="stat-number">${teamMembers.length}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Completed Tasks</h4>
-                        <p class="stat-number">${this.getCompletedTasksCount()}</p>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Productivity Score</h4>
-                        <p class="stat-number">${this.calculateProductivityScore()}%</p>
-                    </div>
-                </div>
-                <div class="recent-activity">
-                    <h4>Recent Activity</h4>
-                    <div class="activity-list">
-                        ${this.getRecentActivity()}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Goals & Tasks Methods
-    loadGoalsSection() {
-        this.renderProjects();
-        this.renderMemberSelector();
+    // Project Management Methods
+    showProjectCreator() {
+        this.populateMemberSelector();
+        document.getElementById('projectModal').style.display = 'flex';
     }
 
     async handleProjectCreate(event) {
@@ -152,18 +178,18 @@ class ProductivityBeast {
             name: document.getElementById('projectName').value,
             description: document.getElementById('projectDesc').value,
             deadline: document.getElementById('projectDeadline').value,
-            members: Array.from(document.querySelectorAll('.member-item.selected'))
-                        .map(item => JSON.parse(item.dataset.member))
+            members: this.getSelectedMembers()
         };
 
         if (!projectData.name || !projectData.description || !projectData.deadline) {
-            alert('Please fill all required fields');
+            this.showToast('Please fill all required fields', 'error');
             return;
         }
 
         try {
-            // Show loading
-            document.querySelector('#projectModal button[type="submit"]').textContent = 'Creating...';
+            const submitBtn = document.querySelector('#projectForm button[type="submit"]');
+            submitBtn.textContent = 'Creating...';
+            submitBtn.disabled = true;
             
             const tasks = await this.generateTasksWithAI(projectData);
             const project = {
@@ -175,51 +201,46 @@ class ProductivityBeast {
                 createdAt: new Date().toISOString()
             };
             
-            projects.push(project);
+            this.projects.push(project);
             this.saveProjects();
             this.renderProjects();
-            this.closeModal();
-            this.sendTaskNotifications(project);
+            this.closeModal('projectModal');
+            this.updateStats();
+            this.showToast('Project created successfully!', 'success');
             
-            alert('Project created successfully!');
         } catch (error) {
             console.error('Project creation failed:', error);
-            alert('Failed to create project. Please try again.');
+            this.showToast('Failed to create project. Please try again.', 'error');
         } finally {
-            document.querySelector('#projectModal button[type="submit"]').textContent = 'Create Project';
+            const submitBtn = document.querySelector('#projectForm button[type="submit"]');
+            submitBtn.textContent = 'Create Project';
+            submitBtn.disabled = false;
         }
     }
 
     async generateTasksWithAI(projectData) {
-        const prompt = `You are a project management AI. Break down the following project into detailed daily tasks:
+        const prompt = `Create a detailed project breakdown for: "${projectData.name}"
 
-Project: ${projectData.name}
 Description: ${projectData.description}
 Deadline: ${projectData.deadline}
-Team Members: ${projectData.members.map(m => `${m.name} (Skills: ${m.skills})`).join(', ')}
+Team Members: ${projectData.members.map(m => `${m.name} (${m.skills.join(', ')})`).join(', ')}
 
-Create a JSON response with this structure:
+Generate 5-8 main tasks with subtasks. Return JSON format:
 {
   "tasks": [
     {
       "title": "Task name",
       "description": "Detailed description",
       "estimatedHours": 8,
-      "priority": "high|medium|low",
+      "priority": "high",
       "requiredSkills": ["skill1", "skill2"],
-      "dependencies": [],
       "subtasks": [
-        {
-          "title": "Subtask name",
-          "description": "Subtask description",
-          "estimatedHours": 2
-        }
+        {"title": "Subtask 1", "estimatedHours": 4},
+        {"title": "Subtask 2", "estimatedHours": 4}
       ]
     }
   ]
-}
-
-Generate 5-10 meaningful tasks that cover the entire project scope.`;
+}`;
 
         try {
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -243,10 +264,10 @@ Generate 5-10 meaningful tasks that cover the entire project scope.`;
             const data = await response.json();
             const aiResponse = data.choices[0].message.content;
             
-            // Extract JSON from AI response
             const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]).tasks;
+                const parsed = JSON.parse(jsonMatch[0]);
+                return parsed.tasks || [];
             }
             
             throw new Error('Invalid AI response format');
@@ -259,36 +280,36 @@ Generate 5-10 meaningful tasks that cover the entire project scope.`;
     generateFallbackTasks(projectData) {
         return [
             {
-                title: 'Project Planning',
-                description: 'Define project requirements and create detailed plan',
-                estimatedHours: 8,
+                title: 'Project Planning & Setup',
+                description: 'Define requirements and create project structure',
+                estimatedHours: 16,
                 priority: 'high',
-                requiredSkills: ['planning'],
+                requiredSkills: ['planning', 'analysis'],
                 subtasks: [
-                    { title: 'Requirements gathering', estimatedHours: 4 },
-                    { title: 'Timeline creation', estimatedHours: 4 }
+                    { title: 'Requirements gathering', estimatedHours: 8 },
+                    { title: 'Project timeline creation', estimatedHours: 8 }
                 ]
             },
             {
-                title: 'Implementation Phase 1',
-                description: 'Begin core development work',
-                estimatedHours: 16,
+                title: 'Development Phase 1',
+                description: 'Core implementation and initial features',
+                estimatedHours: 40,
                 priority: 'high',
-                requiredSkills: ['development'],
+                requiredSkills: ['development', 'programming'],
                 subtasks: [
-                    { title: 'Setup development environment', estimatedHours: 4 },
-                    { title: 'Core feature development', estimatedHours: 12 }
+                    { title: 'Environment setup', estimatedHours: 8 },
+                    { title: 'Core feature development', estimatedHours: 32 }
                 ]
             },
             {
                 title: 'Testing & Quality Assurance',
-                description: 'Comprehensive testing of all features',
-                estimatedHours: 12,
+                description: 'Comprehensive testing and bug fixes',
+                estimatedHours: 24,
                 priority: 'medium',
-                requiredSkills: ['testing'],
+                requiredSkills: ['testing', 'qa'],
                 subtasks: [
-                    { title: 'Unit testing', estimatedHours: 6 },
-                    { title: 'Integration testing', estimatedHours: 6 }
+                    { title: 'Unit testing', estimatedHours: 12 },
+                    { title: 'Integration testing', estimatedHours: 12 }
                 ]
             }
         ];
@@ -296,51 +317,58 @@ Generate 5-10 meaningful tasks that cover the entire project scope.`;
 
     assignTasksToMembers(tasks, members) {
         return tasks.map(task => {
-            const bestAssignee = this.findBestAssignee(task, members);
+            const assignee = this.findBestAssignee(task, members);
             return {
                 ...task,
-                assignee: bestAssignee,
+                assignee: assignee,
                 status: 'pending',
-                id: Date.now().toString() + Math.random()
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
             };
         });
     }
 
     findBestAssignee(task, members) {
-        if (!members.length) return null;
+        if (!members || members.length === 0) return null;
         
-        return members.reduce((best, member) => {
+        const scored = members.map(member => {
             const skillMatch = task.requiredSkills?.filter(skill => 
                 member.skills.some(memberSkill => 
                     memberSkill.toLowerCase().includes(skill.toLowerCase())
                 )
             ).length || 0;
             
-            return skillMatch > best.score ? { member, score: skillMatch } : best;
-        }, { member: members[0], score: 0 }).member;
-    }
-
-    sendTaskNotifications(project) {
-        // Simulate email notifications
-        project.tasks.forEach(task => {
-            if (task.assignee) {
-                console.log(`Email sent to ${task.assignee.email}: New task assigned - ${task.title}`);
-                // In real implementation, integrate with email service
-            }
+            return { member, score: skillMatch };
         });
+        
+        const best = scored.reduce((best, current) => 
+            current.score > best.score ? current : best
+        );
+        
+        return best.member;
     }
 
     renderProjects() {
+        const projectsGrid = document.getElementById('projectsGrid');
         if (!projectsGrid) return;
         
-        projectsGrid.innerHTML = projects.map(project => `
+        if (this.projects.length === 0) {
+            projectsGrid.innerHTML = `
+                <div class="empty-state">
+                    <h4>No projects yet</h4>
+                    <p>Create your first project to get started!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        projectsGrid.innerHTML = this.projects.map(project => `
             <div class="project-card" onclick="viewProjectDetails('${project.id}')">
                 <div class="status-indicator ${project.status}"></div>
                 <h4>${project.name}</h4>
                 <p class="project-desc">${project.description}</p>
                 <div class="project-meta">
-                    <span>Deadline: ${new Date(project.deadline).toLocaleDateString()}</span>
-                    <span>Members: ${project.members?.length || 0}</span>
+                    <span>Due: ${new Date(project.deadline).toLocaleDateString()}</span>
+                    <span>Team: ${project.members?.length || 0} members</span>
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${this.calculateProjectProgress(project)}%"></div>
@@ -357,66 +385,148 @@ Generate 5-10 meaningful tasks that cover the entire project scope.`;
     }
 
     // Team Management Methods
-    loadTeamSection() {
-        const teamSection = document.getElementById('teamSection');
-        if (!teamSection) {
-            this.createTeamSection();
+    addTeamMember(memberData) {
+        if (!this.teamMembers.find(m => m.email === memberData.email)) {
+            this.teamMembers.push({
+                ...memberData,
+                id: Date.now().toString(),
+                status: 'active',
+                joinedAt: new Date().toISOString()
+            });
+            this.saveTeamMembers();
+            this.updateStats();
         }
-        
-        teamSection.innerHTML = `
-            <div class="team-management">
-                <div class="team-header">
-                    <h3>Team Management</h3>
-                    <div class="team-actions">
-                        <button onclick="app.showInviteModal()">+ Invite Members</button>
-                        <button onclick="app.showBulkImportModal()">📊 AI Bulk Import</button>
-                        <button onclick="app.showMessageModal()">💬 Message Team</button>
-                    </div>
-                </div>
-                
-                <div class="team-search">
-                    <input type="text" placeholder="Search team members..." onkeyup="app.filterTeamMembers(this.value)">
-                    <select onchange="app.filterByDepartment(this.value)">
-                        <option value="">All Departments</option>
-                        ${this.getDepartments().map(dept => `<option value="${dept}">${dept}</option>`).join('')}
-                    </select>
-                </div>
-                
-                <div class="team-grid" id="teamGrid">
-                    ${this.renderTeamMembers()}
-                </div>
-            </div>
-            
-            <!-- Team Management Modals -->
-            ${this.createTeamModals()}
-        `;
     }
 
     renderTeamMembers() {
-        return teamMembers.map(member => `
+        const teamGrid = document.getElementById('teamGrid');
+        if (!teamGrid) return;
+        
+        if (this.teamMembers.length === 0) {
+            teamGrid.innerHTML = `
+                <div class="empty-state">
+                    <h4>No team members yet</h4>
+                    <p>Add team members to get started!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        teamGrid.innerHTML = this.teamMembers.map(member => `
             <div class="team-member-card">
-                <div class="member-avatar">👤</div>
-                <div class="member-info">
-                    <h4>${member.name}</h4>
-                    <p>${member.email}</p>
-                    <p><strong>Department:</strong> ${member.department}</p>
-                    <p><strong>Skills:</strong> ${member.skills.join(', ')}</p>
-                    <p><strong>Experience:</strong> ${member.experienceLevel}</p>
-                    <div class="member-actions">
-                        <button onclick="app.editMember('${member.email}')">Edit</button>
-                        <button onclick="app.removeMember('${member.email}')">Remove</button>
-                        <button onclick="app.messageIndividual('${member.email}')">Message</button>
+                <div class="member-header">
+                    <div class="member-avatar">${member.name.charAt(0).toUpperCase()}</div>
+                    <div class="member-info">
+                        <h4>${member.name}</h4>
+                        <div class="member-email">${member.email}</div>
                     </div>
+                </div>
+                <div class="member-details">
+                    <div class="member-detail">
+                        <span>Department:</span>
+                        <span>${member.department}</span>
+                    </div>
+                    <div class="member-detail">
+                        <span>Experience:</span>
+                        <span>${member.experienceLevel}</span>
+                    </div>
+                    <div class="member-detail">
+                        <span>Phone:</span>
+                        <span>${member.phone || 'N/A'}</span>
+                    </div>
+                </div>
+                <div class="member-skills">
+                    ${member.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+                <div class="member-actions">
+                    <button onclick="editMember('${member.id}')">Edit</button>
+                    <button onclick="removeMember('${member.id}')">Remove</button>
+                    <button onclick="messageIndividual('${member.email}')">Message</button>
                 </div>
             </div>
         `).join('');
     }
 
-    async handleBulkImport(file, format) {
+    populateFilters() {
+        const departmentFilter = document.getElementById('departmentFilter');
+        const departments = [...new Set(this.teamMembers.map(m => m.department))];
+        
+        if (departmentFilter) {
+            departmentFilter.innerHTML = '<option value="">All Departments</option>' +
+                departments.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+        }
+    }
+
+    filterTeamMembers(searchTerm) {
+        const members = document.querySelectorAll('.team-member-card');
+        members.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(searchTerm.toLowerCase()) ? 'block' : 'none';
+        });
+    }
+
+    filterByDepartment(department) {
+        const members = document.querySelectorAll('.team-member-card');
+        members.forEach(card => {
+            if (!department) {
+                card.style.display = 'block';
+            } else {
+                const memberDept = card.querySelector('.member-detail span:last-child').textContent;
+                card.style.display = memberDept === department ? 'block' : 'none';
+            }
+        });
+    }
+
+    // Bulk Import Methods
+    showBulkImportModal() {
+        document.getElementById('bulkImportModal').style.display = 'flex';
+        this.resetImportSteps();
+    }
+
+    resetImportSteps() {
+        document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+        document.getElementById('step1').classList.add('active');
+        this.selectedFormat = null;
+    }
+
+    selectFormat(format) {
+        this.selectedFormat = format;
+        document.querySelectorAll('.format-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        document.querySelector(`[onclick="selectFormat('${format}')"]`).classList.add('selected');
+        
+        setTimeout(() => {
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+        }, 500);
+    }
+
+    handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file || !this.selectedFormat) return;
+        
+        this.processFile(file);
+    }
+
+    async processFile(file) {
+        const progressArea = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        progressArea.style.display = 'block';
+        progressFill.style.width = '0%';
+        progressText.textContent = 'Processing file...';
+        
         try {
-            let data;
+            // Simulate progress
+            for (let i = 0; i <= 100; i += 10) {
+                progressFill.style.width = i + '%';
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
             
-            switch(format) {
+            let data;
+            switch(this.selectedFormat) {
                 case 'csv':
                     data = await this.parseCSV(file);
                     break;
@@ -429,40 +539,71 @@ Generate 5-10 meaningful tasks that cover the entire project scope.`;
                 case 'text':
                     data = await this.parseText(file);
                     break;
-                default:
-                    throw new Error('Unsupported format');
             }
             
-            // Use Groq AI to analyze and structure the data
+            progressText.textContent = 'Analyzing with AI...';
             const structuredData = await this.analyzeDataWithAI(data);
             
-            // Add members after AI processing
+            // Add valid members
+            let addedCount = 0;
             structuredData.forEach(memberData => {
-                if (memberData.email && !teamMembers.find(m => m.email === memberData.email)) {
-                    teamMembers.push({
-                        ...memberData,
-                        id: Date.now().toString() + Math.random()
-                    });
+                if (memberData.email && !this.teamMembers.find(m => m.email === memberData.email)) {
+                    this.addTeamMember(memberData);
+                    addedCount++;
                 }
             });
             
-            this.saveTeamMembers();
-            this.loadTeamSection();
-            this.syncWithGoogleSheets();
+            this.closeModal('bulkImportModal');
+            this.renderTeamMembers();
+            this.showToast(`Successfully imported ${addedCount} team members!`, 'success');
             
-            alert(`Successfully imported ${structuredData.length} team members!`);
         } catch (error) {
-            console.error('Bulk import failed:', error);
-            alert('Import failed. Please check your file format.');
+            console.error('Import failed:', error);
+            this.showToast('Import failed. Please check your file format.', 'error');
         }
     }
 
+    async parseCSV(file) {
+        const text = await file.text();
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) throw new Error('Invalid CSV format');
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        return lines.slice(1).map(line => {
+            const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+            const obj = {};
+            headers.forEach((header, index) => {
+                obj[header] = values[index] || '';
+            });
+            return obj;
+        });
+    }
+
+    async parseExcel(file) {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        return XLSX.utils.sheet_to_json(worksheet);
+    }
+
+    async parseJSON(file) {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        return Array.isArray(data) ? data : [data];
+    }
+
+    async parseText(file) {
+        const text = await file.text();
+        return text.split('\n').map(line => ({ text: line.trim() })).filter(obj => obj.text);
+    }
+
     async analyzeDataWithAI(rawData) {
-        const prompt = `Analyze this data and extract team member information. Return JSON array with objects containing: name, email, department, skills (array), experienceLevel, phone, specialization.
+        const prompt = `Analyze this data and extract team member information. Return a JSON array with objects containing: name, email, department, skills (array), experienceLevel, phone, specialization.
 
-Data: ${JSON.stringify(rawData.slice(0, 5))}
+Sample data: ${JSON.stringify(rawData.slice(0, 3))}
 
-Return only valid JSON array format.`;
+Return only a valid JSON array format. Extract any relevant information and standardize the format.`;
 
         try {
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -482,7 +623,6 @@ Return only valid JSON array format.`;
             const data = await response.json();
             const aiResponse = data.choices[0].message.content;
             
-            // Extract JSON from response
             const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 return JSON.parse(jsonMatch[0]);
@@ -495,221 +635,182 @@ Return only valid JSON array format.`;
         }
     }
 
-    // File parsing methods
-    async parseCSV(file) {
-        const text = await file.text();
-        const lines = text.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim());
-        
-        return lines.slice(1).map(line => {
-            const values = line.split(',').map(v => v.trim());
-            const obj = {};
-            headers.forEach((header, index) => {
-                obj[header] = values[index] || '';
-            });
-            return obj;
-        }).filter(obj => Object.values(obj).some(val => val));
+    fallbackDataParsing(rawData) {
+        return rawData.map((item, index) => ({
+            name: item.name || item.Name || `Member ${index + 1}`,
+            email: item.email || item.Email || `member${index + 1}@company.com`,
+            department: item.department || item.Department || 'General',
+            skills: this.parseSkills(item.skills || item.Skills || 'General'),
+            experienceLevel: item.experience || item.Experience || 'Mid',
+            phone: item.phone || item.Phone || '',
+            specialization: item.specialization || item.Specialization || 'General'
+        }));
     }
 
-    async parseExcel(file) {
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        return XLSX.utils.sheet_to_json(worksheet);
-    }
-
-    async parseJSON(file) {
-        const text = await file.text();
-        return JSON.parse(text);
-    }
-
-    async parseText(file) {
-        const text = await file.text();
-        return text.split('\n').map(line => ({ text: line.trim() })).filter(obj => obj.text);
-    }
-
-    // Google Sheets Integration
-    async syncWithGoogleSheets() {
-        try {
-            // In a real implementation, you would use Google Sheets API
-            console.log('Syncing with Google Sheets:', this.googleSheetId);
-            console.log('Team members to sync:', teamMembers);
-            
-            // Simulate API call
-            setTimeout(() => {
-                console.log('Google Sheets sync completed');
-            }, 1000);
-        } catch (error) {
-            console.error('Google Sheets sync failed:', error);
-        }
+    parseSkills(skillsString) {
+        if (Array.isArray(skillsString)) return skillsString;
+        return skillsString.split(',').map(s => s.trim()).filter(s => s);
     }
 
     // Utility Methods
-    saveProjects() {
-        localStorage.setItem('projects', JSON.stringify(projects));
-    }
-
-    saveTeamMembers() {
-        localStorage.setItem('teamMembers', JSON.stringify(teamMembers));
-    }
-
-    getDepartments() {
-        return [...new Set(teamMembers.map(m => m.department).filter(Boolean))];
-    }
-
-    getCompletedTasksCount() {
-        return projects.reduce((count, project) => {
-            return count + (project.tasks?.filter(task => task.status === 'completed').length || 0);
-        }, 0);
-    }
-
-    calculateProductivityScore() {
-        if (projects.length === 0) return 0;
-        const totalProgress = projects.reduce((sum, project) => sum + this.calculateProjectProgress(project), 0);
-        return Math.round(totalProgress / projects.length);
-    }
-
-    getRecentActivity() {
-        const activities = [
-            'New project "Website Redesign" created',
-            'Task "Database Setup" completed by John',
-            'Team member Sarah added',
-            'Project "Mobile App" 80% complete'
-        ];
+    populateMemberSelector() {
+        const selector = document.getElementById('memberSelector');
+        if (!selector) return;
         
-        return activities.map(activity => `<div class="activity-item">${activity}</div>`).join('');
-    }
-
-    // Modal and UI Methods
-    showProjectCreator() {
-        this.renderMemberSelector();
-        document.getElementById('projectModal').style.display = 'flex';
-    }
-
-    closeModal() {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.style.display = 'none';
-        });
-    }
-
-    renderMemberSelector() {
-        if (!memberSelector) return;
-        
-        memberSelector.innerHTML = teamMembers.map(member => `
-            <div class="member-item" data-member='${JSON.stringify(member)}' onclick="toggleMemberSelection(this)">
+        selector.innerHTML = this.teamMembers.map(member => `
+            <div class="member-item" data-member-id="${member.id}" onclick="toggleMemberSelection(this)">
                 <span class="member-name">${member.name}</span>
                 <span class="member-skills">${member.skills.join(', ')}</span>
             </div>
         `).join('');
     }
 
-    // Create missing sections
-    createDashboardSection() {
-        const main = document.querySelector('.dashboard');
-        const section = document.createElement('section');
-        section.className = 'content';
-        section.id = 'dashboardSection';
-        main.appendChild(section);
+    getSelectedMembers() {
+        const selected = document.querySelectorAll('.member-item.selected');
+        return Array.from(selected).map(item => {
+            const memberId = item.dataset.memberId;
+            return this.teamMembers.find(m => m.id === memberId);
+        }).filter(Boolean);
     }
 
-    createTeamSection() {
-        const main = document.querySelector('.dashboard');
-        const section = document.createElement('section');
-        section.className = 'content';
-        section.id = 'teamSection';
-        main.appendChild(section);
+    updateStats() {
+        document.getElementById('activeProjects').textContent = 
+            this.projects.filter(p => p.status !== 'completed').length;
+        document.getElementById('teamCount').textContent = this.teamMembers.length;
+        document.getElementById('completedTasks').textContent = this.getCompletedTasksCount();
+        document.getElementById('productivityScore').textContent = this.calculateProductivityScore() + '%';
     }
 
-    createTeamModals() {
-        return `
-            <!-- Bulk Import Modal -->
-            <div class="modal" id="bulkImportModal">
-                <div class="modal-content">
-                    <span class="close" onclick="app.closeModal()">&times;</span>
-                    <h2>AI Bulk Import</h2>
-                    <div class="import-options">
-                        <button onclick="app.selectImportFormat('csv')">📄 CSV</button>
-                        <button onclick="app.selectImportFormat('excel')">📊 Excel</button>
-                        <button onclick="app.selectImportFormat('json')">🔧 JSON</button>
-                        <button onclick="app.selectImportFormat('text')">📝 Text</button>
-                    </div>
-                    <div class="file-upload" id="fileUploadArea" style="display:none;">
-                        <input type="file" id="importFile" onchange="app.handleFileSelect(event)">
-                        <p>Drag and drop your file here or click to browse</p>
-                    </div>
-                </div>
-            </div>
-        `;
+    getCompletedTasksCount() {
+        return this.projects.reduce((count, project) => {
+            return count + (project.tasks?.filter(task => task.status === 'completed').length || 0);
+        }, 0);
+    }
+
+    calculateProductivityScore() {
+        if (this.projects.length === 0) return 0;
+        const totalProgress = this.projects.reduce((sum, project) => 
+            sum + this.calculateProjectProgress(project), 0);
+        return Math.round(totalProgress / this.projects.length);
+    }
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        toastMessage.textContent = message;
+        toast.className = `toast ${type} show`;
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    toggleUserMenu() {
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown) {
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
     }
 
     setupEventListeners() {
-        // Set up any additional event listeners needed
+        // Close modals when clicking outside
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
-                this.closeModal();
+                e.target.style.display = 'none';
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                const dropdown = document.getElementById('userDropdown');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
             }
         });
     }
 
-    renderInitialData() {
-        if (projects.length === 0) {
-            // Add sample data
-            this.createSampleData();
-        }
-    }
-
-    createSampleData() {
-        // Add sample team members
-        if (teamMembers.length === 0) {
-            teamMembers = [
+    initializeSampleData() {
+        if (this.teamMembers.length === 0) {
+            const sampleMembers = [
                 {
-                    name: 'John Doe',
-                    email: 'john@company.com',
+                    name: 'John Smith',
+                    email: 'john.smith@company.com',
                     department: 'Development',
-                    skills: ['JavaScript', 'React', 'Node.js'],
+                    skills: ['JavaScript', 'React', 'Node.js', 'Python'],
                     experienceLevel: 'Senior',
-                    phone: '+1234567890',
+                    phone: '+1-555-0101',
                     specialization: 'Full Stack Development'
                 },
                 {
-                    name: 'Sarah Smith',
-                    email: 'sarah@company.com',
+                    name: 'Sarah Johnson',
+                    email: 'sarah.johnson@company.com',
                     department: 'Design',
-                    skills: ['UI/UX', 'Figma', 'Photoshop'],
+                    skills: ['UI/UX', 'Figma', 'Adobe Creative Suite', 'Prototyping'],
                     experienceLevel: 'Mid',
-                    phone: '+1234567891',
-                    specialization: 'UI/UX Design'
+                    phone: '+1-555-0102',
+                    specialization: 'User Experience Design'
+                },
+                {
+                    name: 'Mike Chen',
+                    email: 'mike.chen@company.com',
+                    department: 'Marketing',
+                    skills: ['Digital Marketing', 'SEO', 'Content Strategy', 'Analytics'],
+                    experienceLevel: 'Senior',
+                    phone: '+1-555-0103',
+                    specialization: 'Digital Marketing Strategy'
                 }
             ];
-            this.saveTeamMembers();
+            
+            sampleMembers.forEach(member => this.addTeamMember(member));
         }
+    }
+
+    saveProjects() {
+        localStorage.setItem('projects', JSON.stringify(this.projects));
+    }
+
+    saveTeamMembers() {
+        localStorage.setItem('teamMembers', JSON.stringify(this.teamMembers));
     }
 }
 
-// Global Functions (for HTML onclick handlers)
-function handleAuth(event) {
-    app.handleAuth(event);
+// Global Functions for HTML Event Handlers
+function handleSignin(event) {
+    window.productivityBeast.handleSignin(event);
+}
+
+function handleSignup(event) {
+    window.productivityBeast.handleSignup(event);
 }
 
 function switchTab(tab) {
-    app.switchTab(tab);
+    window.productivityBeast.switchTab(tab);
 }
 
 function showSection(section) {
-    app.showSection(section);
+    window.productivityBeast.showSection(section);
 }
 
 function showProjectCreator() {
-    app.showProjectCreator();
-}
-
-function closeModal() {
-    app.closeModal();
+    window.productivityBeast.showProjectCreator();
 }
 
 function handleProjectCreate(event) {
-    app.handleProjectCreate(event);
+    window.productivityBeast.handleProjectCreate(event);
+}
+
+function closeModal(modalId) {
+    window.productivityBeast.closeModal(modalId);
 }
 
 function toggleMemberSelection(element) {
@@ -717,27 +818,86 @@ function toggleMemberSelection(element) {
 }
 
 function viewProjectDetails(projectId) {
-    const project = projects.find(p => p.id === projectId);
+    const project = window.productivityBeast.projects.find(p => p.id === projectId);
     if (project) {
-        alert(`Project: ${project.name}\nTasks: ${project.tasks?.length || 0}\nProgress: ${app.calculateProjectProgress(project)}%`);
+        alert(`Project: ${project.name}\nDescription: ${project.description}\nTasks: ${project.tasks?.length || 0}\nProgress: ${window.productivityBeast.calculateProjectProgress(project)}%`);
     }
 }
 
 function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    }
+    window.productivityBeast.toggleUserMenu();
 }
 
 function handleLogout() {
-    app.handleLogout();
+    window.productivityBeast.handleLogout();
+}
+
+function showBulkImportModal() {
+    window.productivityBeast.showBulkImportModal();
+}
+
+function selectFormat(format) {
+    window.productivityBeast.selectFormat(format);
+}
+
+function handleFileSelect(event) {
+    window.productivityBeast.handleFileSelect(event);
+}
+
+function filterTeamMembers(searchTerm) {
+    window.productivityBeast.filterTeamMembers(searchTerm);
+}
+
+function filterByDepartment(department) {
+    window.productivityBeast.filterByDepartment(department);
+}
+
+function filterByExperience(experience) {
+    const members = document.querySelectorAll('.team-member-card');
+    members.forEach(card => {
+        if (!experience) {
+            card.style.display = 'block';
+        } else {
+            const memberExp = card.querySelector('.member-detail:nth-child(2) span:last-child').textContent;
+            card.style.display = memberExp === experience ? 'block' : 'none';
+        }
+    });
+}
+
+function editMember(memberId) {
+    alert('Edit member functionality - Coming soon!');
+}
+
+function removeMember(memberId) {
+    if (confirm('Are you sure you want to remove this team member?')) {
+        const index = window.productivityBeast.teamMembers.findIndex(m => m.id === memberId);
+        if (index > -1) {
+            window.productivityBeast.teamMembers.splice(index, 1);
+            window.productivityBeast.saveTeamMembers();
+            window.productivityBeast.renderTeamMembers();
+            window.productivityBeast.updateStats();
+            window.productivityBeast.showToast('Team member removed successfully', 'success');
+        }
+    }
+}
+
+function messageIndividual(email) {
+    const message = prompt(`Send message to ${email}:`);
+    if (message) {
+        console.log(`Message sent to ${email}: ${message}`);
+        window.productivityBeast.showToast('Message sent successfully!', 'success');
+    }
+}
+
+function showInviteModal() {
+    alert('Invite functionality - Coming soon!');
+}
+
+function showMessageModal() {
+    alert('Team messaging functionality - Coming soon!');
 }
 
 // Initialize Application
-const app = new ProductivityBeast();
+window.productivityBeast = new ProductivityBeast();
 
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ProductivityBeast;
-}
+console.log('Productivity Beast application loaded successfully!');
