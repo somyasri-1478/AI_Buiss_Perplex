@@ -722,7 +722,7 @@ For skills, convert any skill-related information into an array.
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer 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`
+                'Authorization': `Bearer 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#notyourType`
             },
             body: JSON.stringify({
                 model: 'llama-3.3-70b-versatile',
