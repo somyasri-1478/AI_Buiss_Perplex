@@ -5,1002 +5,295 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productivity Beast</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <!-- Authentication Section -->
+    <!-- Authentication Container -->
     <div class="auth-container" id="authContainer">
-        <div class="auth-backdrop"></div>
         <div class="auth-box">
-            <div class="auth-logo">
-                <i class="fas fa-bolt"></i>
+            <div class="hero-section">
                 <h1>Productivity Beast</h1>
-            </div>
-            <h2>Your AI Accountability Partner</h2>
-            <p class="auth-subtitle">The 5:1 proven AI Agent that keeps you emotionally connected to your goals</p>
-            
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="signin">Sign In</button>
-                <button class="auth-tab" data-tab="signup">Sign Up</button>
-            </div>
-            
-            <div class="auth-form-container">
-                <form id="signinForm" class="auth-form active">
-                    <div class="form-group">
-                        <label for="signin-email">Email</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-envelope"></i>
-                            <input type="email" id="signin-email" placeholder="your@email.com" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="signin-password">Password</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-lock"></i>
-                            <input type="password" id="signin-password" placeholder="••••••••" required>
-                        </div>
-                    </div>
-                    <div class="form-options">
-                        <label class="remember-me">
-                            <input type="checkbox" id="remember-me">
-                            <span>Remember me</span>
-                        </label>
-                        <a href="#" class="forgot-password">Forgot Password?</a>
-                    </div>
-                    <button type="submit" class="btn-primary">Sign In</button>
-                </form>
-                
-                <form id="signupForm" class="auth-form">
-                    <div class="form-group">
-                        <label for="signup-name">Full Name</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="signup-name" placeholder="John Doe" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-email">Email</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-envelope"></i>
-                            <input type="email" id="signup-email" placeholder="your@email.com" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-password">Password</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-lock"></i>
-                            <input type="password" id="signup-password" placeholder="••••••••" required>
-                            <div class="password-strength"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-confirm">Confirm Password</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-lock"></i>
-                            <input type="password" id="signup-confirm" placeholder="••••••••" required>
-                        </div>
-                    </div>
-                    <div class="terms-policy">
-                        <label class="checkbox-container">
-                            <input type="checkbox" required>
-                            <span class="checkmark"></span>
-                            I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a>
-                        </label>
-                    </div>
-                    <button type="submit" class="btn-primary">Create Account</button>
-                </form>
-            </div>
-            
-            <div class="social-login">
-                <p>Or continue with</p>
-                <div class="social-buttons">
-                    <button class="social-btn google"><i class="fab fa-google"></i>Google</button>
-                    <button class="social-btn apple"><i class="fab fa-apple"></i>Apple</button>
+                <p>Your Virtual Productivity Manager</p>
+                <div class="hero-features">
+                    <span>✓ AI-Powered Task Management</span>
+                    <span>✓ Team Collaboration</span>
+                    <span>✓ Smart Analytics</span>
                 </div>
             </div>
+            
+            <div class="auth-tabs">
+                <button class="active" id="signinTab" onclick="switchTab('signin')">Sign In</button>
+                <button id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+            
+            <!-- Sign In Form -->
+            <form id="signinForm" onsubmit="handleSignin(event)">
+                <div class="form-group">
+                    <input type="email" id="signinEmail" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signinPassword" placeholder="Password" required>
+                </div>
+                <button type="submit" class="auth-btn">Sign In</button>
+                <div class="social-login">
+                    <button type="button" class="social-btn google">Continue with Google</button>
+                    <button type="button" class="social-btn apple">Continue with Apple</button>
+                </div>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signupForm" onsubmit="handleSignup(event)" style="display:none;">
+                <div class="form-group">
+                    <input type="text" id="signupName" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="signupEmail" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required>
+                </div>
+                <button type="submit" class="auth-btn">Create Account</button>
+                <div class="social-login">
+                    <button type="button" class="social-btn google">Sign up with Google</button>
+                    <button type="button" class="social-btn apple">Sign up with Apple</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Main Dashboard -->
-    <div class="dashboard-container" id="dashboardContainer">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fas fa-bolt"></i>
-                    <h2>Productivity Beast</h2>
-                </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
+    <div class="dashboard" id="dashboard">
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h2>Welcome to Productivity Beast</h2>
+                <span class="user-greeting" id="userGreeting">Hello, User!</span>
             </div>
-            
-            <div class="sidebar-user">
-                <div class="user-avatar">
-                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=random" alt="User">
-                </div>
-                <div class="user-info">
-                    <h3 class="user-name">John Doe</h3>
-                    <span class="user-role">Team Leader</span>
+            <div class="header-right">
+                <div class="notifications">🔔</div>
+                <div class="user-menu" onclick="toggleUserMenu()">
+                    <span class="user-avatar">👤</span>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-item">Profile</div>
+                        <div class="dropdown-item">Settings</div>
+                        <div class="dropdown-item" onclick="handleLogout()">Logout</div>
+                    </div>
                 </div>
             </div>
-            
-            <nav class="sidebar-nav">
-                <ul>
-                    <li class="nav-item active" data-section="dashboard">
-                        <a href="#"><i class="fas fa-home"></i> Dashboard</a>
-                    </li>
-                    <li class="nav-item" data-section="goals">
-                        <a href="#"><i class="fas fa-tasks"></i> Goals & Tasks</a>
-                    </li>
-                    <li class="nav-item" data-section="team">
-                        <a href="#"><i class="fas fa-users"></i> Team Management</a>
-                    </li>
-                    <li class="nav-item" data-section="analytics">
-                        <a href="#"><i class="fas fa-chart-line"></i> Analytics</a>
-                    </li>
-                    <li class="nav-item" data-section="settings">
-                        <a href="#"><i class="fas fa-cog"></i> Settings</a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <button id="logoutBtn" class="btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+        </header>
+        
+        <nav class="sidebar">
+            <div class="nav-item active" onclick="showSection('dashboard')">
+                <span class="nav-icon">📊</span> Dashboard
             </div>
-        </aside>
+            <div class="nav-item" onclick="showSection('goals')">
+                <span class="nav-icon">🎯</span> Goals & Tasks
+            </div>
+            <div class="nav-item" onclick="showSection('team')">
+                <span class="nav-icon">👥</span> Team Management
+            </div>
+            <div class="nav-item" onclick="showSection('analytics')">
+                <span class="nav-icon">📈</span> Analytics
+            </div>
+            <div class="nav-item" onclick="showSection('settings')">
+                <span class="nav-icon">⚙️</span> Settings
+            </div>
+        </nav>
 
-        <!-- Main Content -->
         <main class="main-content">
             <!-- Dashboard Section -->
-            <section class="content-section active" id="dashboard-section">
-                <header class="content-header">
-                    <h1>Dashboard</h1>
-                    <div class="header-actions">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search...">
-                        </div>
-                        <div class="notification-bell">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-count">3</span>
-                        </div>
-                    </div>
-                </header>
-                
-                <div class="content-body">
-                    <div class="dashboard-stats">
+            <section class="content-section active" id="dashboardSection">
+                <div class="dashboard-overview">
+                    <h3>Dashboard Overview</h3>
+                    <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Tasks Completed</h3>
-                                <p class="stat-value">24</p>
-                                <p class="stat-change positive">+12% from last week</p>
+                            <div class="stat-icon">📋</div>
+                            <div class="stat-content">
+                                <h4>Active Projects</h4>
+                                <p class="stat-number" id="activeProjects">0</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-spinner"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>In Progress</h3>
-                                <p class="stat-value">7</p>
-                                <p class="stat-change negative">-3% from last week</p>
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <h4>Team Members</h4>
+                                <p class="stat-number" id="teamCount">0</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Team Members</h3>
-                                <p class="stat-value">12</p>
-                                <p class="stat-change neutral">No change</p>
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-content">
+                                <h4>Completed Tasks</h4>
+                                <p class="stat-number" id="completedTasks">0</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Goal Completion</h3>
-                                <p class="stat-value">68%</p>
-                                <p class="stat-change positive">+8% from last month</p>
+                            <div class="stat-icon">🏆</div>
+                            <div class="stat-content">
+                                <h4>Productivity Score</h4>
+                                <p class="stat-number" id="productivityScore">0%</p>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="dashboard-charts">
-                        <div class="chart-card">
-                            <h3>Productivity Trend</h3>
-                            <div class="chart-container">
-                                <canvas id="productivityChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-card">
-                            <h3>Task Distribution</h3>
-                            <div class="chart-container">
-                                <canvas id="taskDistributionChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="dashboard-activities">
-                        <h3>Recent Activities</h3>
-                        <ul class="activity-list">
-                            <li class="activity-item">
-                                <div class="activity-icon"><i class="fas fa-check"></i></div>
-                                <div class="activity-details">
-                                    <p><strong>Sarah Johnson</strong> completed <span class="highlight">Website Redesign</span> task</p>
-                                    <span class="activity-time">2 hours ago</span>
-                                </div>
-                            </li>
-                            <li class="activity-item">
-                                <div class="activity-icon"><i class="fas fa-plus"></i></div>
-                                <div class="activity-details">
-                                    <p><strong>Michael Chen</strong> added a new task <span class="highlight">Q2 Marketing Plan</span></p>
-                                    <span class="activity-time">Yesterday</span>
-                                </div>
-                            </li>
-                            <li class="activity-item">
-                                <div class="activity-icon"><i class="fas fa-user-plus"></i></div>
-                                <div class="activity-details">
-                                    <p><strong>You</strong> added <span class="highlight">Alicia Ross</span> to the team</p>
-                                    <span class="activity-time">2 days ago</span>
-                                </div>
-                            </li>
-                            <li class="activity-item">
-                                <div class="activity-icon"><i class="fas fa-comment"></i></div>
-                                <div class="activity-details">
-                                    <p><strong>David Wilson</strong> commented on <span class="highlight">Q1 Report</span></p>
-                                    <span class="activity-time">3 days ago</span>
-                                </div>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </section>
 
             <!-- Goals & Tasks Section -->
-            <section class="content-section" id="goals-section">
-                <header class="content-header">
-                    <h1>Goals & Tasks</h1>
-                    <div class="header-actions">
-                        <button class="btn-primary" id="createProjectBtn">
-                            <i class="fas fa-plus"></i> Create Project
-                        </button>
-                    </div>
-                </header>
-                
-                <div class="content-body">
-                    <div class="projects-grid" id="projectsGrid">
-                        <!-- Project cards will be dynamically added here -->
-                    </div>
-                    
-                    <!-- Empty state for when there are no projects -->
-                    <div class="empty-state" id="emptyProjectsState">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <h3>No Projects Yet</h3>
-                        <p>Create your first project to get started with goal tracking and task management.</p>
-                        <button class="btn-primary" onclick="showProjectCreator()">
-                            <i class="fas fa-plus"></i> Create Project
-                        </button>
-                    </div>
+            <section class="content-section" id="goalsSection">
+                <div class="section-header">
+                    <h3>Projects & Goals</h3>
+                    <button class="primary-btn" onclick="showProjectCreator()">+ New Project</button>
                 </div>
-                
-                <!-- Project Detail View (hidden by default) -->
-                <div class="project-detail" id="projectDetail">
-                    <div class="project-detail-header">
-                        <button class="btn-back" id="backToProjects">
-                            <i class="fas fa-arrow-left"></i> Back to Projects
-                        </button>
-                        <h2 id="projectDetailTitle">Project Title</h2>
-                        <div class="project-meta">
-                            <span class="project-deadline" id="projectDetailDeadline">
-                                <i class="fas fa-calendar-alt"></i> Deadline: <span></span>
-                            </span>
-                            <span class="project-progress" id="projectDetailProgress">
-                                <i class="fas fa-chart-line"></i> Progress: <span></span>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="project-detail-body">
-                        <div class="project-description" id="projectDetailDescription">
-                            <!-- Project description goes here -->
-                        </div>
-                        
-                        <div class="project-tasks">
-                            <h3>Tasks</h3>
-                            <div class="task-filters">
-                                <button class="task-filter active" data-filter="all">All</button>
-                                <button class="task-filter" data-filter="pending">Pending</button>
-                                <button class="task-filter" data-filter="completed">Completed</button>
-                            </div>
-                            <div class="task-list" id="projectTasks">
-                                <!-- Tasks will be dynamically added here -->
-                            </div>
-                        </div>
-                        
-                        <div class="project-team">
-                            <h3>Team Members</h3>
-                            <div class="team-members" id="projectTeam">
-                                <!-- Team members will be dynamically added here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Create Project Modal -->
-                <div class="modal" id="createProjectModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2>Create New Project</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Step indicator -->
-                            <div class="step-indicator">
-                                <div class="step active" data-step="1">1</div>
-                                <div class="step-line"></div>
-                                <div class="step" data-step="2">2</div>
-                                <div class="step-line"></div>
-                                <div class="step" data-step="3">3</div>
-                            </div>
-                            
-                            <!-- Step 1: Project Details -->
-                            <div class="step-content active" data-step="1">
-                                <h3>Project Details</h3>
-                                <div class="form-group">
-                                    <label for="projectName">Project Name</label>
-                                    <input type="text" id="projectName" placeholder="Enter project name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="projectDescription">Description</label>
-                                    <textarea id="projectDescription" placeholder="Enter project description" rows="4" required></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="projectDeadline">Deadline</label>
-                                    <input type="date" id="projectDeadline" required>
-                                </div>
-                                <div class="modal-actions">
-                                    <button class="btn-secondary modal-close">Cancel</button>
-                                    <button class="btn-primary" id="nextToStep2">Next</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Step 2: Team Selection -->
-                            <div class="step-content" data-step="2">
-                                <h3>Select Team Members</h3>
-                                <div class="form-group">
-                                    <input type="text" id="teamSearchInput" placeholder="Search team members..." class="search-input">
-                                </div>
-                                <div class="team-selection">
-                                    <div class="team-selection-list" id="teamSelectionList">
-                                        <!-- Team members will be loaded here -->
-                                    </div>
-                                </div>
-                                <div class="selected-members">
-                                    <h4>Selected: <span id="selectedCount">0</span> members</h4>
-                                </div>
-                                <div class="modal-actions">
-                                    <button class="btn-text" id="backToStep1">Back</button>
-                                    <button class="btn-secondary" id="selectAllTeam">Select All</button>
-                                    <button class="btn-primary" id="nextToStep3">Next</button>
-                                </div>
-                            </div>
-                            
-                            <!-- Step 3: AI Task Generation -->
-                            <div class="step-content" data-step="3">
-                                <h3>AI Task Breakdown</h3>
-                                <div class="ai-processing-status">
-                                    <div class="ai-status-indicator">
-                                        <div class="ai-spinner">
-                                            <i class="fas fa-spinner fa-spin"></i>
-                                        </div>
-                                        <p class="ai-status-text">Analyzing project requirements...</p>
-                                    </div>
-                                    <div class="ai-progress">
-                                        <div class="ai-progress-bar"></div>
-                                    </div>
-                                </div>
-                                <div class="ai-result hidden" id="aiTaskResult">
-                                    <h4>Generated Task Breakdown</h4>
-                                    <div class="ai-task-summary">
-                                        <p><strong>Total Tasks:</strong> <span id="totalTasksCount">0</span></p>
-                                        <p><strong>Estimated Completion:</strong> <span id="estimatedCompletion"></span></p>
-                                    </div>
-                                    <div class="task-breakdown" id="taskBreakdownPreview">
-                                        <!-- Task breakdown preview will be shown here -->
-                                    </div>
-                                </div>
-                                <div class="modal-actions">
-                                    <button class="btn-text" id="backToStep2">Back</button>
-                                    <button class="btn-primary" id="createProjectSubmit">Create Project</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="projects-grid" id="projectsGrid">
+                    <!-- Projects will be rendered here -->
                 </div>
             </section>
 
             <!-- Team Management Section -->
-            <section class="content-section" id="team-section">
-                <header class="content-header">
-                    <h1>Team Management</h1>
-                    <div class="header-actions">
-                        <div class="dropdown">
-                            <button class="btn-primary dropdown-toggle">
-                                <i class="fas fa-plus"></i> Add Members <i class="fas fa-caret-down"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a href="#" id="addMemberBtn"><i class="fas fa-user-plus"></i> Add Manually</a>
-                                <a href="#" id="inviteLinkBtn"><i class="fas fa-link"></i> Generate Invite Link</a>
-                                <a href="#" id="bulkImportBtn"><i class="fas fa-file-import"></i> Bulk Import</a>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-                
-                <div class="content-body">
-                    <div class="team-filters">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="teamSearch" placeholder="Search team members...">
-                        </div>
-                        <div class="filter-controls">
-                            <select id="departmentFilter">
-                                <option value="">All Departments</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="Design">Design</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Sales">Sales</option>
-                                <option value="HR">HR</option>
-                            </select>
-                            <select id="experienceFilter">
-                                <option value="">All Experience Levels</option>
-                                <option value="Junior">Junior</option>
-                                <option value="Mid-level">Mid-level</option>
-                                <option value="Senior">Senior</option>
-                                <option value="Lead">Lead</option>
-                            </select>
-                            <button class="btn-secondary" id="clearFilters">
-                                <i class="fas fa-times"></i> Clear
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="view-controls">
-                        <button class="view-control active" data-view="grid">
-                            <i class="fas fa-th"></i>
-                        </button>
-                        <button class="view-control" data-view="list">
-                            <i class="fas fa-list"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="team-members-grid" id="teamMembersGrid">
-                        <!-- Team members will be dynamically added here -->
-                    </div>
-                    
-                    <!-- Empty state for when there are no team members -->
-                    <div class="empty-state" id="emptyTeamState">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <h3>Your Team Is Empty</h3>
-                        <p>Add team members to start collaborating and assigning tasks.</p>
-                        <button class="btn-primary" id="emptyStateAddMemberBtn">
-                            <i class="fas fa-user-plus"></i> Add Team Member
-                        </button>
+            <section class="content-section" id="teamSection">
+                <div class="section-header">
+                    <h3>Team Management</h3>
+                    <div class="team-actions">
+                        <button class="primary-btn" onclick="showInviteModal()">+ Invite Members</button>
+                        <button class="secondary-btn" onclick="showBulkImportModal()">📊 AI Bulk Import</button>
+                        <button class="secondary-btn" onclick="showMessageModal()">💬 Message Team</button>
                     </div>
                 </div>
                 
-                <!-- Add Member Modal -->
-                <div class="modal" id="addMemberModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2>Add Team Member</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addMemberForm">
-                                <div class="form-group">
-                                    <label for="memberName">Full Name</label>
-                                    <input type="text" id="memberName" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="memberEmail">Email</label>
-                                    <input type="email" id="memberEmail" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="memberDepartment">Department</label>
-                                    <select id="memberDepartment" required>
-                                        <option value="">Select Department</option>
-                                        <option value="Engineering">Engineering</option>
-                                        <option value="Design">Design</option>
-                                        <option value="Marketing">Marketing</option>
-                                        <option value="Sales">Sales</option>
-                                        <option value="HR">HR</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="memberSkills">Skills (comma separated)</label>
-                                    <input type="text" id="memberSkills" placeholder="JavaScript, Design, Marketing, etc.">
-                                </div>
-                                <div class="form-group">
-                                    <label for="memberExperience">Experience Level</label>
-                                    <select id="memberExperience" required>
-                                        <option value="">Select Experience</option>
-                                        <option value="Junior">Junior</option>
-                                        <option value="Mid-level">Mid-level</option>
-                                        <option value="Senior">Senior</option>
-                                        <option value="Lead">Lead</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="memberPhone">Phone</label>
-                                    <input type="tel" id="memberPhone">
-                                </div>
-                                <div class="form-group">
-                                    <label for="memberSpecialization">Specialization</label>
-                                    <input type="text" id="memberSpecialization">
-                                </div>
-                                <div class="form-group">
-                                    <label for="memberWorkload">Current Workload</label>
-                                    <select id="memberWorkload" required>
-                                        <option value="Low">Low</option>
-                                        <option value="Medium" selected>Medium</option>
-                                        <option value="High">High</option>
-                                    </select>
-                                </div>
-                                <div class="modal-actions">
-                                    <button type="button" class="btn-secondary modal-close">Cancel</button>
-                                    <button type="submit" class="btn-primary">Add Member</button>
-                                </div>
-                            </form>
-                        </div>
+                <div class="team-controls">
+                    <div class="search-bar">
+                        <input type="text" id="teamSearch" placeholder="Search team members..." onkeyup="filterTeamMembers(this.value)">
+                    </div>
+                    <div class="filter-controls">
+                        <select id="departmentFilter" onchange="filterByDepartment(this.value)">
+                            <option value="">All Departments</option>
+                        </select>
+                        <select id="experienceFilter" onchange="filterByExperience(this.value)">
+                            <option value="">All Experience Levels</option>
+                            <option value="Junior">Junior</option>
+                            <option value="Mid">Mid</option>
+                            <option value="Senior">Senior</option>
+                        </select>
                     </div>
                 </div>
                 
-                <!-- Generate Invite Link Modal -->
-                <div class="modal" id="inviteLinkModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2>Generate Invite Link</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label for="inviteRole">Role Access Level</label>
-                                <select id="inviteRole" required>
-                                    <option value="member">Team Member</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="viewer">Viewer</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="inviteExpiration">Link Expiration</label>
-                                <select id="inviteExpiration" required>
-                                    <option value="24h">24 Hours</option>
-                                    <option value="7d" selected>7 Days</option>
-                                    <option value="30d">30 Days</option>
-                                    <option value="never">Never</option>
-                                </select>
-                            </div>
-                            <div class="invite-link-result hidden" id="inviteLinkResult">
-                                <label>Invitation Link</label>
-                                <div class="invite-link-container">
-                                    <input type="text" id="inviteLinkValue" readonly>
-                                    <button id="copyInviteLink" class="btn-icon">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                                <p class="invite-link-info">
-                                    <i class="fas fa-info-circle"></i> 
-                                    Share this link with your team members. Anyone with this link can join your team with the selected role.
-                                </p>
-                            </div>
-                            <div class="modal-actions">
-                                <button type="button" class="btn-secondary modal-close">Cancel</button>
-                                <button type="button" class="btn-primary" id="generateInviteBtn">Generate Link</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Bulk Import Modal -->
-                <div class="modal" id="bulkImportModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2>Bulk Import Team Members</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="import-options">
-                                <h3>Select File Format</h3>
-                                <div class="format-options">
-                                    <button class="format-option active" data-format="csv">
-                                        <i class="fas fa-file-csv"></i>
-                                        <span>CSV</span>
-                                    </button>
-                                    <button class="format-option" data-format="excel">
-                                        <i class="fas fa-file-excel"></i>
-                                        <span>Excel</span>
-                                    </button>
-                                    <button class="format-option" data-format="json">
-                                        <i class="fas fa-file-code"></i>
-                                        <span>JSON</span>
-                                    </button>
-                                    <button class="format-option" data-format="text">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>Text</span>
-                                    </button>
-                                </div>
-                                
-                                <div class="upload-container" id="fileUploadContainer">
-                                    <div class="upload-prompt">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <h4>Drop your file here or click to browse</h4>
-                                        <p id="formatDescription">Accepts CSV files with headers for Name, Email, etc.</p>
-                                        <input type="file" id="bulkImportFile" class="file-input">
-                                    </div>
-                                    <button class="btn-secondary" id="browseFilesBtn">Browse Files</button>
-                                </div>
-                                
-                                <div class="import-processing hidden" id="importProcessing">
-                                    <div class="processing-status">
-                                        <div class="spinner">
-                                            <i class="fas fa-spinner fa-spin"></i>
-                                        </div>
-                                        <h4 id="processingStatusText">Uploading file...</h4>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" id="importProgress"></div>
-                                    </div>
-                                </div>
-                                
-                                <div class="ai-analysis-results hidden" id="aiAnalysisResults">
-                                    <h3>AI Analysis Results</h3>
-                                    <div class="analysis-summary">
-                                        <p><strong>Found team members:</strong> <span id="detectedMembersCount">0</span></p>
-                                        <p><strong>Detected fields:</strong> <span id="detectedFieldsList">None</span></p>
-                                    </div>
-                                    <div class="import-preview">
-                                        <h4>Preview</h4>
-                                        <div class="preview-table-container">
-                                            <table class="preview-table" id="importPreviewTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Name</th>
-                                                        <th>Email</th>
-                                                        <th>Department</th>
-                                                        <th>Skills</th>
-                                                        <th>Experience</th>
-                                                        <th>Workload</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Preview rows will be added here -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="modal-actions" id="importActions">
-                                    <button type="button" class="btn-secondary modal-close">Cancel</button>
-                                    <button type="button" class="btn-primary" id="startImportBtn">Import Team</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Member Details Modal -->
-                <div class="modal" id="memberDetailsModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2>Team Member Details</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="member-profile">
-                                <div class="member-avatar">
-                                    <img src="" alt="Member" id="detailAvatar">
-                                </div>
-                                <div class="member-info">
-                                    <h3 id="detailName"></h3>
-                                    <p id="detailRole"></p>
-                                </div>
-                            </div>
-                            
-                            <div class="member-details">
-                                <div class="detail-item">
-                                    <i class="fas fa-envelope"></i>
-                                    <span id="detailEmail"></span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-phone"></i>
-                                    <span id="detailPhone"></span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-building"></i>
-                                    <span id="detailDepartment"></span>
-                                </div>
-                                <div class="detail-item">
-                                    <i class="fas fa-briefcase"></i>
-                                    <span id="detailWorkload"></span>
-                                </div>
-                            </div>
-                            
-                            <div class="member-section">
-                                <h4>Skills</h4>
-                                <div class="skills-container" id="detailSkills">
-                                    <!-- Skills badges will be added here -->
-                                </div>
-                            </div>
-                            
-                            <div class="member-section">
-                                <h4>Current Projects</h4>
-                                <ul class="member-projects" id="detailProjects">
-                                    <!-- Projects will be added here -->
-                                </ul>
-                            </div>
-                            
-                            <div class="member-actions">
-                                <div class="message-actions">
-                                    <h4>Send Message</h4>
-                                    <div class="message-buttons">
-                                        <button class="message-btn" data-platform="email">
-                                            <i class="fas fa-envelope"></i> Email
-                                        </button>
-                                        <button class="message-btn" data-platform="whatsapp">
-                                            <i class="fab fa-whatsapp"></i> WhatsApp
-                                        </button>
-                                        <button class="message-btn" data-platform="slack">
-                                            <i class="fab fa-slack"></i> Slack
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="management-actions">
-                                    <button class="btn-secondary" id="editMemberBtn">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn-danger" id="removeMemberBtn">
-                                        <i class="fas fa-trash-alt"></i> Remove
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Confirmation Modal -->
-                <div class="modal" id="confirmationModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2 id="confirmationTitle">Confirm Action</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <p id="confirmationMessage">Are you sure you want to proceed with this action?</p>
-                            <div class="modal-actions">
-                                <button type="button" class="btn-secondary modal-close">Cancel</button>
-                                <button type="button" class="btn-danger" id="confirmActionBtn">Confirm</button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="team-grid" id="teamGrid">
+                    <!-- Team members will be rendered here -->
                 </div>
             </section>
 
             <!-- Analytics Section -->
-            <section class="content-section" id="analytics-section">
-                <header class="content-header">
-                    <h1>Analytics</h1>
-                    <div class="header-actions">
-                        <div class="date-range-picker">
-                            <button class="date-range-btn">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Last 30 Days</span>
-                                <i class="fas fa-caret-down"></i>
-                            </button>
-                        </div>
-                        <button class="btn-secondary">
-                            <i class="fas fa-download"></i> Export
-                        </button>
-                    </div>
-                </header>
-                
-                <div class="content-body">
-                    <div class="analytics-overview">
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <h3>Total Tasks</h3>
-                                <p class="stat-value">124</p>
-                                <p class="stat-change positive">+23% from previous period</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <h3>Completion Rate</h3>
-                                <p class="stat-value">76%</p>
-                                <p class="stat-change positive">+12% from previous period</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <h3>Avg. Task Duration</h3>
-                                <p class="stat-value">2.4 days</p>
-                                <p class="stat-change negative">+0.3 days from previous period</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-info">
-                                <h3>Team Efficiency</h3>
-                                <p class="stat-value">82%</p>
-                                <p class="stat-change positive">+5% from previous period</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="analytics-charts">
-                        <div class="chart-card large">
-                            <h3>Performance Trends</h3>
-                            <div class="chart-container">
-                                <canvas id="performanceChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-card">
-                            <h3>Task Status Distribution</h3>
-                            <div class="chart-container">
-                                <canvas id="taskStatusChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="chart-card">
-                            <h3>Team Workload</h3>
-                            <div class="chart-container">
-                                <canvas id="workloadChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="analytics-details">
-                        <div class="analytics-card">
-                            <h3>Team Member Performance</h3>
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Team Member</th>
-                                            <th>Tasks Completed</th>
-                                            <th>On-Time Completion</th>
-                                            <th>Avg. Quality</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Sarah Johnson</td>
-                                            <td>28</td>
-                                            <td>96%</td>
-                                            <td>9.2/10</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Michael Chen</td>
-                                            <td>22</td>
-                                            <td>91%</td>
-                                            <td>8.9/10</td>
-                                        </tr>
-                                        <tr>
-                                            <td>David Wilson</td>
-                                            <td>19</td>
-                                            <td>84%</td>
-                                            <td>8.5/10</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Alicia Ross</td>
-                                            <td>31</td>
-                                            <td>97%</td>
-                                            <td>9.6/10</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+            <section class="content-section" id="analyticsSection">
+                <h3>Analytics & Reports</h3>
+                <div class="analytics-content">
+                    <p>Analytics dashboard coming soon...</p>
                 </div>
             </section>
-            
+
             <!-- Settings Section -->
-            <section class="content-section" id="settings-section">
-                <header class="content-header">
-                    <h1>Settings</h1>
-                </header>
-                
-                <div class="content-body">
-                    <div class="settings-container">
-                        <div class="settings-sidebar">
-                            <ul class="settings-nav">
-                                <li class="active" data-settings="profile">Profile</li>
-                                <li data-settings="account">Account</li>
-                                <li data-settings="notifications">Notifications</li>
-                                <li data-settings="appearance">Appearance</li>
-                                <li data-settings="integrations">Integrations</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="settings-content">
-                            <!-- Profile Settings -->
-                            <div class="settings-section active" data-settings="profile">
-                                <h2>Profile Settings</h2>
-                                <form id="profileForm">
-                                    <div class="profile-avatar-section">
-                                        <div class="profile-avatar">
-                                            <img src="https://ui-avatars.com/api/?name=John+Doe&background=random" alt="User">
-                                        </div>
-                                        <div class="avatar-controls">
-                                            <button type="button" class="btn-secondary">Change Avatar</button>
-                                            <button type="button" class="btn-text">Remove</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label for="profileFirstName">First Name</label>
-                                            <input type="text" id="profileFirstName" value="John">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="profileLastName">Last Name</label>
-                                            <input type="text" id="profileLastName" value="Doe">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="profileEmail">Email</label>
-                                        <input type="email" id="profileEmail" value="john.doe@example.com">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="profilePhone">Phone</label>
-                                        <input type="tel" id="profilePhone" value="+1 (555) 123-4567">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="profileBio">Bio</label>
-                                        <textarea id="profileBio" rows="4">Team leader with 5+ years of experience in project management and team leadership.</textarea>
-                                    </div>
-                                    
-                                    <div class="form-actions">
-                                        <button type="button" class="btn-secondary">Cancel</button>
-                                        <button type="submit" class="btn-primary">Save Changes</button>
-                                    </div>
-                                </form>
-                            </div>
-                            
-                            <!-- Other settings sections would be here -->
-                        </div>
-                    </div>
+            <section class="content-section" id="settingsSection">
+                <h3>Settings</h3>
+                <div class="settings-content">
+                    <p>Settings panel coming soon...</p>
                 </div>
             </section>
         </main>
+    </div>
 
-        <!-- Toast Notifications -->
-        <div class="toast-container" id="toastContainer">
-            <!-- Toast notifications will be added dynamically -->
+    <!-- Project Creation Modal -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Project</h2>
+                <span class="close" onclick="closeModal('projectModal')">&times;</span>
+            </div>
+            <form id="projectForm" onsubmit="handleProjectCreate(event)">
+                <div class="form-group">
+                    <label for="projectName">Project Name</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label for="projectDesc">Description</label>
+                    <textarea id="projectDesc" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="projectDeadline">Deadline</label>
+                    <input type="date" id="projectDeadline" required>
+                </div>
+                <div class="form-group">
+                    <label>Select Team Members</label>
+                    <div class="member-selector" id="memberSelector">
+                        <!-- Team members will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal('projectModal')">Cancel</button>
+                    <button type="submit" class="primary-btn">Create Project</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Load Chart.js for charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Main JavaScript -->
+    <!-- Bulk Import Modal -->
+    <div class="modal" id="bulkImportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>AI Bulk Import</h2>
+                <span class="close" onclick="closeModal('bulkImportModal')">&times;</span>
+            </div>
+            <div class="import-steps">
+                <div class="step active" id="step1">
+                    <h3>Step 1: Choose File Format</h3>
+                    <div class="format-options">
+                        <div class="format-option" onclick="selectFormat('csv')">
+                            <div class="format-icon">📄</div>
+                            <h4>CSV</h4>
+                            <p>Comma-separated values</p>
+                        </div>
+                        <div class="format-option" onclick="selectFormat('excel')">
+                            <div class="format-icon">📊</div>
+                            <h4>Excel</h4>
+                            <p>.xlsx, .xls files</p>
+                        </div>
+                        <div class="format-option" onclick="selectFormat('json')">
+                            <div class="format-icon">🔧</div>
+                            <h4>JSON</h4>
+                            <p>JavaScript Object Notation</p>
+                        </div>
+                        <div class="format-option" onclick="selectFormat('text')">
+                            <div class="format-icon">📝</div>
+                            <h4>Text</h4>
+                            <p>Plain text files</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="step" id="step2">
+                    <h3>Step 2: Upload File</h3>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <input type="file" id="importFile" onchange="handleFileSelect(event)" accept=".csv,.xlsx,.xls,.json,.txt">
+                        <div class="upload-content">
+                            <div class="upload-icon">📁</div>
+                            <p>Drag and drop your file here or click to browse</p>
+                        </div>
+                    </div>
+                    <div class="upload-progress" id="uploadProgress" style="display:none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="progressText">Processing...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
