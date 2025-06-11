@@ -1293,7 +1293,7 @@ class ProductivityBeastApp {
             const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer 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',
+                    'Authorization': 'Bearer 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',
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
