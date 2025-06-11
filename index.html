@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Beast - Your Virtual Productivity Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SheetJS CDN for Excel file support -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Landing/Auth Page -->
+    <div id="auth-page" class="auth-container">
+        <div class="auth-background">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        
+        <div class="auth-content">
+            <div class="auth-hero">
+                <h1 class="hero-title">Meet Productivity Beast</h1>
+                <p class="hero-subtitle">Your Virtual Productivity Manager</p>
+                <p class="hero-description">AI accountability agent with 5:1 motivation approach to supercharge your productivity</p>
+            </div>
+            
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="signin">Sign In</button>
+                    <button class="auth-tab" data-tab="signup">Sign Up</button>
+                </div>
+                
+                <div class="auth-form-container">
+                    <!-- Sign In Form -->
+                    <div id="signin-form" class="auth-form active">
+                        <form class="form">
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" placeholder="Enter your email" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" placeholder="Enter your password" required>
+                            </div>
+                            <button type="submit" class="btn btn--primary btn--full-width">Sign In</button>
+                        </form>
+                        
+                        <div class="auth-divider">
+                            <span>or continue with</span>
+                        </div>
+                        
+                        <div class="social-buttons">
+                            <button class="btn btn--outline social-btn">
+                                <i class="fab fa-google"></i>
+                                Google
+                            </button>
+                            <button class="btn btn--outline social-btn">
+                                <i class="fab fa-apple"></i>
+                                Apple
+                            </button>
+                            <button class="btn btn--outline social-btn">
+                                <i class="fab fa-facebook"></i>
+                                Facebook
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sign Up Form -->
+                    <div id="signup-form" class="auth-form">
+                        <form class="form">
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" placeholder="Enter your full name" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" placeholder="Enter your email" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" placeholder="Create a password" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" placeholder="Confirm your password" required>
+                            </div>
+                            <button type="submit" class="btn btn--primary btn--full-width">Sign Up</button>
+                        </form>
+                        
+                        <div class="auth-divider">
+                            <span>or continue with</span>
+                        </div>
+                        
+                        <div class="social-buttons">
+                            <button class="btn btn--outline social-btn">
+                                <i class="fab fa-google"></i>
+                                Google
+                            </button>
+                            <button class="btn btn--outline social-btn">
+                                <i class="fab fa-apple"></i>
+                                Apple
+                            </button>
+                            <button class="btn btn--outline social-btn">
+                                <i class="fab fa-facebook"></i>
+                                Facebook
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard -->
+    <div id="dashboard-page" class="dashboard-container hidden">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h2 class="app-title">Productivity Beast</h2>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="user-name">Welcome back!</span>
+                    <button class="btn btn--secondary btn--sm" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="dashboard-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="goals">
+                        <i class="fas fa-bullseye"></i>
+                        <span>Goals & Tasks</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="team">
+                        <i class="fas fa-users"></i>
+                        <span>Team Management</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="analytics">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analytics & Reports</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="help">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help & Support</span>
+                    </a>
+                </nav>
+            </aside>
+            
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="content-section active">
+                    <div class="section-header">
+                        <h1>Dashboard</h1>
+                        <p>Welcome to your productivity command center</p>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Active Tasks</h3>
+                                <div class="card-metric">24</div>
+                                <p class="card-description">Tasks in progress</p>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Team Members</h3>
+                                <div class="card-metric">10</div>
+                                <p class="card-description">Active members</p>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Productivity Score</h3>
+                                <div class="card-metric">85%</div>
+                                <p class="card-description">This week</p>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Goals Achieved</h3>
+                                <div class="card-metric">12</div>
+                                <p class="card-description">This month</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Management Section -->
+                <div id="team-section" class="content-section">
+                    <div class="section-header">
+                        <h1>Team Management</h1>
+                        <p>Manage your team members, roles, and communications</p>
+                    </div>
+                    
+                    <!-- Team Actions Bar -->
+                    <div class="team-actions">
+                        <div class="actions-left">
+                            <button class="btn btn--primary" id="generate-invite-btn">
+                                <i class="fas fa-link"></i>
+                                Generate Invite Link
+                            </button>
+                            <button class="btn btn--secondary" id="add-member-btn">
+                                <i class="fas fa-user-plus"></i>
+                                Add Member
+                            </button>
+                            <button class="btn btn--secondary" id="bulk-import-btn">
+                                <i class="fas fa-file-import"></i>
+                                AI Bulk Import
+                            </button>
+                        </div>
+                        <div class="actions-right">
+                            <div class="search-container">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" class="form-control search-input" placeholder="Search members..." id="member-search">
+                            </div>
+                            <div class="view-toggle">
+                                <button class="view-btn active" data-view="grid">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="view-btn" data-view="list">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="filters-section">
+                        <div class="filter-group">
+                            <label class="filter-label">Department</label>
+                            <select class="form-control filter-select" id="department-filter">
+                                <option value="">All Departments</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Experience</label>
+                            <select class="form-control filter-select" id="experience-filter">
+                                <option value="">All Levels</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">Status</label>
+                            <select class="form-control filter-select" id="status-filter">
+                                <option value="">All Status</option>
+                            </select>
+                        </div>
+                        <button class="btn btn--outline" id="clear-filters">Clear Filters</button>
+                    </div>
+                    
+                    <!-- Member Grid/List -->
+                    <div class="members-container" id="members-container">
+                        <!-- Members will be populated by JavaScript -->
+                    </div>
+                    
+                    <!-- Messaging Section -->
+                    <div class="messaging-section">
+                        <h3>Team Communications</h3>
+                        <div class="messaging-controls">
+                            <div class="recipient-selection">
+                                <label class="form-label">Send to:</label>
+                                <div class="recipient-options">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="all" class="recipient-checkbox">
+                                        All Members
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="selected" class="recipient-checkbox">
+                                        Selected Members
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="department" class="recipient-checkbox">
+                                        By Department
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="message-templates">
+                                <label class="form-label">Template:</label>
+                                <select class="form-control" id="message-template">
+                                    <option value="">Choose template...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="message-composer">
+                            <div class="form-group">
+                                <label class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="message-subject" placeholder="Enter subject">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Message</label>
+                                <textarea class="form-control" id="message-body" rows="4" placeholder="Enter your message"></textarea>
+                            </div>
+                            
+                            <div class="integration-buttons">
+                                <button class="btn btn--outline integration-btn">
+                                    <i class="fab fa-google"></i>
+                                    Send via Gmail
+                                </button>
+                                <button class="btn btn--outline integration-btn">
+                                    <i class="fab fa-whatsapp"></i>
+                                    Send via WhatsApp
+                                </button>
+                                <button class="btn btn--outline integration-btn">
+                                    <i class="fab fa-slack"></i>
+                                    Send via Slack
+                                </button>
+                                <button class="btn btn--outline integration-btn">
+                                    <i class="fab fa-microsoft"></i>
+                                    Send via Teams
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Other sections (placeholder) -->
+                <div id="goals-section" class="content-section">
+                    <div class="section-header">
+                        <h1>Goals & Tasks</h1>
+                        <p>Manage your goals and track progress</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i class="fas fa-bullseye placeholder-icon"></i>
+                        <h3>Goals & Tasks Section</h3>
+                        <p>This section is under development</p>
+                    </div>
+                </div>
+                
+                <div id="analytics-section" class="content-section">
+                    <div class="section-header">
+                        <h1>Analytics & Reports</h1>
+                        <p>View detailed analytics and generate reports</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i class="fas fa-chart-bar placeholder-icon"></i>
+                        <h3>Analytics & Reports Section</h3>
+                        <p>This section is under development</p>
+                    </div>
+                </div>
+                
+                <div id="settings-section" class="content-section">
+                    <div class="section-header">
+                        <h1>Settings</h1>
+                        <p>Configure your account and preferences</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i class="fas fa-cog placeholder-icon"></i>
+                        <h3>Settings Section</h3>
+                        <p>This section is under development</p>
+                    </div>
+                </div>
+                
+                <div id="help-section" class="content-section">
+                    <div class="section-header">
+                        <h1>Help & Support</h1>
+                        <p>Get help and contact support</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i class="fas fa-question-circle placeholder-icon"></i>
+                        <h3>Help & Support Section</h3>
+                        <p>This section is under development</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="invite-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Generate Invite Link</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <select class="form-control" id="invite-role">
+                        <option value="member">Member</option>
+                        <option value="admin">Admin</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expiration</label>
+                    <select class="form-control" id="invite-expiration">
+                        <option value="24">24 hours</option>
+                        <option value="168">1 week</option>
+                        <option value="720">1 month</option>
+                    </select>
+                </div>
+                <button class="btn btn--primary" id="generate-link-btn">Generate Link</button>
+                
+                <div id="generated-link" class="generated-link hidden">
+                    <label class="form-label">Generated Invite Link</label>
+                    <div class="link-container">
+                        <input type="text" class="form-control" id="invite-link" readonly>
+                        <button class="btn btn--secondary" id="copy-link-btn">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="add-member-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Team Member</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-member-form">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-control" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select class="form-control" name="department" required>
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <input type="text" class="form-control" name="role" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Experience Level</label>
+                        <select class="form-control" name="experienceLevel" required>
+                            <option value="">Select Level</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Skills (comma-separated)</label>
+                        <input type="text" class="form-control" name="skills" placeholder="React, Node.js, Python">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" class="form-control" name="specialization">
+                    </div>
+                    <button type="submit" class="btn btn--primary">Add Member</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bulk Import Modal -->
+    <div id="bulk-import-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>AI-Powered Bulk Import</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="import-options">
+                    <h4>Select File Format</h4>
+                    <div class="file-format-options">
+                        <button class="file-format-btn active" data-format="csv">
+                            <i class="fas fa-file-csv"></i>
+                            <span>CSV</span>
+                        </button>
+                        <button class="file-format-btn" data-format="excel">
+                            <i class="fas fa-file-excel"></i>
+                            <span>Excel</span>
+                        </button>
+                        <button class="file-format-btn" data-format="json">
+                            <i class="fas fa-file-code"></i>
+                            <span>JSON</span>
+                        </button>
+                        <button class="file-format-btn" data-format="text">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Text</span>
+                        </button>
+                    </div>
+                    
+                    <div class="form-group mt-16">
+                        <label class="form-label">Upload File</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="bulk-import-file" class="file-input" accept=".csv,.xlsx,.xls,.json,.txt">
+                            <label for="bulk-import-file" class="file-upload-label">
+                                <i class="fas fa-upload"></i>
+                                <span>Choose file or drag and drop</span>
+                            </label>
+                            <div class="file-info hidden">
+                                <span class="file-name"></span>
+                                <button class="btn btn--sm btn--outline remove-file-btn">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-progress-container hidden">
+                        <label class="form-label">Processing File</label>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar"></div>
+                        </div>
+                        <div class="progress-status">
+                            <span class="progress-percentage">0%</span>
+                            <span class="progress-stage">Uploading...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-analysis-container hidden">
+                        <h4>AI Analysis</h4>
+                        <p class="ai-status">Using Groq AI to automatically extract team member information...</p>
+                        <div class="ai-results hidden">
+                            <div class="form-group">
+                                <label class="form-label">Detected Fields</label>
+                                <div class="detected-fields-container">
+                                    <!-- Detected fields will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-container hidden">
+                        <h4>Data Preview</h4>
+                        <div class="preview-table-container">
+                            <table class="preview-table">
+                                <!-- Preview table will be inserted here -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions mt-16">
+                    <button class="btn btn--secondary cancel-import-btn">Cancel</button>
+                    <button class="btn btn--primary import-data-btn" disabled>Import Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
