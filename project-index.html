@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Beast - AI-Powered Productivity Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <!-- Authentication Page -->
+    <div id="auth-page" class="auth-container">
+        <div class="auth-background">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        <div class="auth-content">
+            <div class="auth-hero">
+                <h1 class="hero-title">Meet Productivity Beast</h1>
+                <p class="hero-subtitle">Your Virtual Productivity Manager</p>
+                <p class="hero-description">
+                    AI accountability agent with proven 5:1 emotional motivation approach. 
+                    Transform your productivity with intelligent coaching, team management, 
+                    and real-time insights. Whether you're managing a team of 3 or 30, 
+                    Productivity Beast ensures accountability, efficiency, and success.
+                </p>
+            </div>
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="signin">Sign In</button>
+                    <button class="auth-tab" data-tab="signup">Sign Up</button>
+                </div>
+                
+                <div id="signin-form" class="auth-form active">
+                    <form>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                    </form>
+                </div>
+
+                <div id="signup-form" class="auth-form">
+                    <form>
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" placeholder="Choose a password" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" placeholder="Confirm your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                    </form>
+                </div>
+
+                <div class="divider">
+                    <span>Or continue with</span>
+                </div>
+
+                <div class="social-login">
+                    <button class="btn btn-secondary btn-social social-btn">
+                        <i class="fab fa-google"></i> Google
+                    </button>
+                    <button class="btn btn-secondary btn-social social-btn">
+                        <i class="fab fa-apple"></i> Apple
+                    </button>
+                    <button class="btn btn-secondary btn-social social-btn">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="dashboard hidden">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-left">
+                <h1 class="dashboard-title">Productivity Beast</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">TL</div>
+                    <span class="user-name">Team Leader</span>
+                    <button id="logout-btn" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <!-- Sidebar -->
+            <div class="dashboard-sidebar">
+                <nav class="nav-menu">
+                    <ul>
+                        <li><a href="#" class="nav-item active" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a></li>
+                        <li><a href="#" class="nav-item" data-section="team">
+                            <i class="fas fa-users"></i> Team Management
+                        </a></li>
+                        <li><a href="#" class="nav-item" data-section="goals">
+                            <i class="fas fa-bullseye"></i> Goals & Tasks
+                        </a></li>
+                        <li><a href="#" class="nav-item" data-section="analytics">
+                            <i class="fas fa-chart-bar"></i> Analytics & Reports
+                        </a></li>
+                        <li><a href="#" class="nav-item" data-section="settings">
+                            <i class="fas fa-cog"></i> Settings
+                        </a></li>
+                        <li><a href="#" class="nav-item" data-section="help">
+                            <i class="fas fa-question-circle"></i> Help & Support
+                        </a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="dashboard-main">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="content-section active">
+                    <div class="section-header">
+                        <h2>Dashboard Overview</h2>
+                        <p>Welcome to your productivity command center</p>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <h3>Quick Actions</h3>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-sm">Add Goal</button>
+                                <button class="btn btn-primary btn-sm">Create Task</button>
+                                <button class="btn btn-secondary btn-sm">View Reports</button>
+                                <button class="btn btn-secondary btn-sm">Schedule Meeting</button>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Progress Overview</h3>
+                            <div class="progress-stats">
+                                <div class="stat">
+                                    <div class="stat-value">85%</div>
+                                    <div class="stat-label">Goals Completed</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">12</div>
+                                    <div class="stat-label">Active Projects</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">10</div>
+                                    <div class="stat-label">Team Members</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Recent Activity</h3>
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <span>Sarah completed "API Integration" task</span>
+                                    <span class="activity-time">2h ago</span>
+                                </div>
+                                <div class="activity-item">
+                                    <i class="fas fa-user-plus text-primary"></i>
+                                    <span>New team member Michael joined</span>
+                                    <span class="activity-time">4h ago</span>
+                                </div>
+                                <div class="activity-item">
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                    <span>Project deadline approaching</span>
+                                    <span class="activity-time">1d ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Management Section -->
+                <div id="team-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Team Management</h2>
+                        <p>Manage your team members, roles, and communications</p>
+                    </div>
+
+                    <div class="team-controls">
+                        <div class="controls-row">
+                            <div class="search-filter-group">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="member-search" class="form-control" placeholder="Search team members...">
+                                </div>
+                                <div class="filter-controls">
+                                    <select id="department-filter" class="form-control filter-select">
+                                        <option value="">All Departments</option>
+                                    </select>
+                                    <select id="experience-filter" class="form-control filter-select">
+                                        <option value="">All Experience Levels</option>
+                                    </select>
+                                    <select id="status-filter" class="form-control filter-select">
+                                        <option value="">All Statuses</option>
+                                    </select>
+                                    <button id="clear-filters" class="btn btn-secondary">Clear Filters</button>
+                                </div>
+                            </div>
+                            <div class="action-controls">
+                                <div class="view-toggle">
+                                    <button class="btn btn-sm view-btn active" data-view="grid">
+                                        <i class="fas fa-th"></i>
+                                    </button>
+                                    <button class="btn btn-sm view-btn" data-view="list">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                                <button id="generate-invite-btn" class="btn btn-primary">
+                                    <i class="fas fa-link"></i> Generate Invite
+                                </button>
+                                <button id="add-member-btn" class="btn btn-primary">
+                                    <i class="fas fa-user-plus"></i> Add Member
+                                </button>
+                                <button id="bulk-import-btn" class="btn btn-primary">
+                                    <i class="fas fa-upload"></i> AI Bulk Import
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="members-container" class="members-container members-grid">
+                        <!-- Team members will be rendered here by JavaScript -->
+                    </div>
+
+                    <div class="messaging-controls">
+                        <h3>Team Communications</h3>
+                        <div class="form-group">
+                            <label class="form-label">Message Template</label>
+                            <select id="message-template" class="form-control">
+                                <option value="">Select a template</option>
+                            </select>
+                        </div>
+                        <div class="recipient-options">
+                            <div class="radio-option">
+                                <input type="radio" id="all-members" name="recipients" value="all" checked>
+                                <label for="all-members">All Team Members</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="selected-members" name="recipients" value="selected">
+                                <label for="selected-members">Selected Members Only</label>
+                            </div>
+                        </div>
+                        <div class="integration-buttons">
+                            <button class="btn btn-primary integration-btn">
+                                <i class="fas fa-envelope"></i> Send via Gmail
+                            </button>
+                            <button class="btn btn-primary integration-btn">
+                                <i class="fab fa-whatsapp"></i> Send via WhatsApp
+                            </button>
+                            <button class="btn btn-primary integration-btn">
+                                <i class="fab fa-slack"></i> Send via Slack
+                            </button>
+                            <button class="btn btn-primary integration-btn">
+                                <i class="fab fa-microsoft"></i> Send via Teams
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals & Tasks Section -->
+                <div id="goals-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Goals & Tasks</h2>
+                        <p>Manage your objectives and track progress</p>
+                    </div>
+
+                    <!-- Projects Section -->
+                    <div class="projects-section">
+                        <div class="controls-row">
+                            <div class="search-filter-group">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="project-search" class="form-control" placeholder="Search projects...">
+                                </div>
+                                <div class="filter-controls">
+                                    <select id="project-status-filter" class="form-control filter-select">
+                                        <option value="">All Statuses</option>
+                                        <option value="complete">Complete</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="not-started">Not Started</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="action-controls">
+                                <button id="create-project-btn" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Create Project
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="projects-container" class="projects-grid">
+                            <!-- Projects will be rendered here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div id="analytics-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Analytics & Reports</h2>
+                        <p>Track performance and insights</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Analytics Dashboard Coming Soon</h3>
+                        <p>This section will contain detailed analytics and reporting features.</p>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="settings-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Settings</h2>
+                        <p>Configure your preferences</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i class="fas fa-cog"></i>
+                        <h3>Settings Panel</h3>
+                        <p>This section will contain application settings and preferences.</p>
+                    </div>
+                </div>
+
+                <!-- Help Section -->
+                <div id="help-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Help & Support</h2>
+                        <p>Get assistance and documentation</p>
+                    </div>
+                    <div class="placeholder-content">
+                        <i class="fas fa-life-ring"></i>
+                        <h3>Help Center</h3>
+                        <p>This section will contain help documentation and support resources.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Invite Generation Modal -->
+    <div id="invite-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Generate Team Invite Link</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="invite-form">
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select name="role" class="form-control" required>
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiration</label>
+                        <select name="expiration" class="form-control" required>
+                            <option value="24h">24 Hours</option>
+                            <option value="7d">7 Days</option>
+                            <option value="30d">30 Days</option>
+                            <option value="never">Never</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary">Cancel</button>
+                        <button type="button" id="generate-link-btn" class="btn btn-primary">Generate Link</button>
+                    </div>
+                </form>
+                <div id="generated-link" class="generated-link" style="display: none;">
+                    <h4>Invite Link Generated</h4>
+                    <div class="link-display">
+                        <input type="text" id="invite-link-text" class="form-control" readonly>
+                        <button id="copy-link-btn" class="btn btn-secondary">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="add-member-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Team Member</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-member-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" name="phone" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <select name="department" class="form-control" required>
+                                <option value="">Select Department</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Role</label>
+                            <input type="text" name="role" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Experience Level</label>
+                            <select name="experienceLevel" class="form-control" required>
+                                <option value="">Select Level</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Skills (comma-separated)</label>
+                        <input type="text" name="skills" class="form-control" placeholder="e.g., JavaScript, React, Node.js">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="specialization" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Current Workload</label>
+                        <select name="currentWorkload" class="form-control" required>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Member</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div id="bulk-import-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>AI Bulk Import</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4>Choose File Format</h4>
+                <div class="file-format-grid">
+                    <button class="file-format-btn" data-format="csv">
+                        <i class="fas fa-file-csv"></i>
+                        <span>CSV</span>
+                    </button>
+                    <button class="file-format-btn" data-format="excel">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Excel</span>
+                    </button>
+                    <button class="file-format-btn" data-format="json">
+                        <i class="fas fa-file-code"></i>
+                        <span>JSON</span>
+                    </button>
+                    <button class="file-format-btn" data-format="text">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Text</span>
+                    </button>
+                </div>
+
+                <div class="file-upload-container">
+                    <input type="file" id="bulk-import-file" class="file-input" accept=".csv">
+                    <div class="file-upload-label">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Drag and drop your file here or click to browse</span>
+                    </div>
+                    <div class="file-info" style="display: none;">
+                        <span class="file-name"></span>
+                        <button class="btn btn-sm btn-secondary remove-file-btn">Remove</button>
+                    </div>
+                </div>
+
+                <div class="upload-progress-container" style="display: none;">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-status">
+                        <span class="progress-text">Uploading...</span>
+                        <span class="progress-percentage">0%</span>
+                    </div>
+                </div>
+
+                <div class="ai-analysis-container" style="display: none;">
+                    <h4>AI Analysis</h4>
+                    <div class="ai-status">Using Groq AI to automatically extract team member information...</div>
+                    <div class="detected-fields-container"></div>
+                </div>
+
+                <div class="preview-container" style="display: none;">
+                    <h4>Data Preview</h4>
+                    <div class="preview-table-container">
+                        <table class="preview-table">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary cancel-import-btn">Cancel</button>
+                    <button type="button" class="btn btn-primary import-data-btn" style="display: none;">Import Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div id="create-project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Project</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-project-form">
+                    <div class="form-group">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" name="dueDate" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-control" required>
+                                <option value="not-started">Not Started</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="complete">Complete</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Progress (0-100%)</label>
+                        <input type="range" name="progress" class="form-control progress-slider" min="0" max="100" value="0">
+                        <output class="progress-value">0%</output>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
