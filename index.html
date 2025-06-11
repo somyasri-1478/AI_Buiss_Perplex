@@ -353,12 +353,214 @@
             <!-- Analytics Section -->
             <section id="analytics-section" class="content-section">
                 <div class="section-header">
-                    <p class="section-description">Track performance and insights</p>
+                    <p class="section-description">Track performance and insights across projects and team members</p>
                 </div>
-                <div class="placeholder-content">
-                    <i class="fas fa-chart-bar placeholder-icon"></i>
-                    <h3>Analytics Dashboard Coming Soon</h3>
-                    <p>This section will contain detailed analytics and reporting features.</p>
+                
+                <!-- Analytics Navigation -->
+                <div class="analytics-nav">
+                    <button class="analytics-tab active" data-tab="overview">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Overview</span>
+                    </button>
+                    <button class="analytics-tab" data-tab="projects">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Projects</span>
+                    </button>
+                    <button class="analytics-tab" data-tab="employees">
+                        <i class="fas fa-users"></i>
+                        <span>Employees</span>
+                    </button>
+                    <button class="analytics-tab" data-tab="performance">
+                        <i class="fas fa-trophy"></i>
+                        <span>Performance</span>
+                    </button>
+                    <span class="analytics-tab-indicator"></span>
+                </div>
+
+                <!-- Overview Analytics -->
+                <div id="overview-analytics" class="analytics-content active">
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Productivity Overview</h3>
+                                <div class="chart-period">
+                                    <select id="overview-period" class="form-control">
+                                        <option value="week">This Week</option>
+                                        <option value="month">This Month</option>
+                                        <option value="quarter">This Quarter</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="productivity-overview-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Team Performance Distribution</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="team-performance-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card span-full">
+                            <div class="analytics-card-header">
+                                <h3>Daily Activity Trends</h3>
+                                <div class="chart-period">
+                                    <select id="daily-trends-period" class="form-control">
+                                        <option value="7">Last 7 Days</option>
+                                        <option value="14">Last 14 Days</option>
+                                        <option value="30">Last 30 Days</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="daily-trends-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Analytics -->
+                <div id="projects-analytics" class="analytics-content">
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Project Completion Rate</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="project-completion-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Project Status Overview</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="project-status-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card span-full">
+                            <div class="analytics-card-header">
+                                <h3>Project Timeline & Deadlines</h3>
+                                <div class="chart-period">
+                                    <select id="project-timeline-filter" class="form-control">
+                                        <option value="all">All Projects</option>
+                                        <option value="active">Active Projects</option>
+                                        <option value="completed">Completed Projects</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="project-timeline-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card span-full">
+                            <div class="analytics-card-header">
+                                <h3>Daily Project Progress</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="project-progress-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employees Analytics -->
+                <div id="employees-analytics" class="analytics-content">
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Employee Productivity Score</h3>
+                                <div class="chart-period">
+                                    <select id="employee-period" class="form-control">
+                                        <option value="week">This Week</option>
+                                        <option value="month">This Month</option>
+                                        <option value="quarter">This Quarter</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="employee-productivity-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Department Performance</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="department-performance-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card span-full">
+                            <div class="analytics-card-header">
+                                <h3>Individual Employee Performance</h3>
+                                <div class="chart-period">
+                                    <select id="individual-employee-filter" class="form-control">
+                                        <option value="all">All Employees</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="individual-performance-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card span-full">
+                            <div class="analytics-card-header">
+                                <h3>Weekly Employee Activity</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="weekly-activity-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Analytics -->
+                <div id="performance-analytics" class="analytics-content">
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Overall Performance Metrics</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="performance-metrics-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card">
+                            <div class="analytics-card-header">
+                                <h3>Goal Achievement Rate</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="goal-achievement-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card span-full">
+                            <div class="analytics-card-header">
+                                <h3>Performance Trends</h3>
+                                <div class="chart-period">
+                                    <select id="performance-trends-period" class="form-control">
+                                        <option value="30">Last 30 Days</option>
+                                        <option value="60">Last 60 Days</option>
+                                        <option value="90">Last 90 Days</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="performance-trends-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -624,6 +826,7 @@
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
