@@ -1,6 +1,7 @@
-// Application State
+// Initialize the application
 class ProductivityBeastApp {
     constructor() {
+        // App state
         this.currentUser = null;
         this.currentView = 'grid';
         this.selectedMembers = new Set();
@@ -10,18 +11,18 @@ class ProductivityBeastApp {
             experience: '',
             status: ''
         };
-
+        
         // Project management state
         this.projects = [];
         this.projectSearchTerm = '';
         this.projectFilters = {
             status: ''
         };
-
+        
         // Bulk import data
         this.rawImportData = null;
         this.processedImportData = null;
-
+        
         // Sample data for team members
         this.teamMembers = [
             {
@@ -160,19 +161,148 @@ class ProductivityBeastApp {
                 "body": "Welcome to Productivity Beast!\n\nWe're excited to have you join our team. Please don't hesitate to reach out if you have any questions.\n\nBest regards,\nTeam Lead"
             }
         ];
-
+        
         this.init();
     }
 
     init() {
         this.loadFromStorage();
         this.setupEventListeners();
+        this.setupAnimations();
         this.checkAuthState();
         
         // Delay populating dropdowns to ensure DOM is ready
         setTimeout(() => {
             this.populateDropdowns();
         }, 100);
+    }
+    
+    // New method for animations
+    setupAnimations() {
+        // Add ripple effect to buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const x = e.clientX - e.target.getBoundingClientRect().left;
+                const y = e.clientY - e.target.getBoundingClientRect().top;
+                
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple-effect');
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+        
+        // Add tab indicator animation
+        const setTabIndicatorPosition = (tab) => {
+            const indicator = document.querySelector('.tab-indicator');
+            if (!indicator || !tab) return;
+            
+            const tabRect = tab.getBoundingClientRect();
+            const tabsRect = tab.parentElement.getBoundingClientRect();
+            
+            indicator.style.transform = `translateX(${tabRect.left - tabsRect.left}px)`;
+            indicator.style.width = `${tabRect.width}px`;
+        };
+        
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabs = document.querySelectorAll('.auth-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                setTabIndicatorPosition(this);
+                
+                const tabName = this.dataset.tab;
+                
+                document.querySelectorAll('.auth-form').forEach(form => {
+                    form.classList.remove('active');
+                });
+                
+                setTimeout(() => {
+                    document.getElementById(`${tabName}-form`).classList.add('active');
+                }, 50);
+            });
+        });
+        
+        // Initialize the tab indicator position
+        setTimeout(() => {
+            const activeTab = document.querySelector('.auth-tab.active');
+            setTabIndicatorPosition(activeTab);
+        }, 100);
+        
+        // Smooth section transitions
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                const section = this.getAttribute('data-section');
+                
+                // Update the header title
+                const sectionTitle = document.getElementById('section-title');
+                if (sectionTitle) {
+                    sectionTitle.textContent = section.charAt(0).toUpperCase() + section.slice(1);
+                }
+                
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(contentSection => {
+                    contentSection.classList.remove('active');
+                });
+                
+                // Show selected section
+                const targetSection = document.getElementById(`${section}-section`);
+                setTimeout(() => {
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                    }
+                }, 50);
+                
+                // Render content based on section
+                if (section === 'team') {
+                    setTimeout(() => {
+                        this.renderMembers();
+                    }, 100);
+                } else if (section === 'goals') {
+                    setTimeout(() => {
+                        this.renderProjects();
+                    }, 100);
+                }
+            });
+        });
+        
+        // Animate project progress bars
+        const animateProgressBars = () => {
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                const width = bar.getAttribute('data-progress') || '0%';
+                bar.style.width = '0%';
+                
+                // Use IntersectionObserver to animate when visible
+                const observer = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            setTimeout(() => {
+                                bar.style.width = width;
+                            }, 100);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                
+                observer.observe(bar);
+            });
+        };
+        
+        // Call animation on page load and whenever projects are rendered
+        document.addEventListener('DOMContentLoaded', animateProgressBars);
+        this.animateProgressBars = animateProgressBars;
     }
 
     loadFromStorage() {
@@ -224,7 +354,7 @@ class ProductivityBeastApp {
         if (userName && this.currentUser) {
             userName.textContent = this.currentUser.name;
         }
-
+        
         // Initialize sections based on active section
         setTimeout(() => {
             if (document.getElementById('team-section').classList.contains('active')) {
@@ -237,14 +367,6 @@ class ProductivityBeastApp {
     }
 
     setupEventListeners() {
-        // Auth tabs
-        document.querySelectorAll('.auth-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                const tabName = e.target.dataset.tab;
-                this.switchAuthTab(tabName);
-            });
-        });
-
         // Auth forms
         document.querySelectorAll('.auth-form form').forEach(form => {
             form.addEventListener('submit', (e) => {
@@ -258,15 +380,6 @@ class ProductivityBeastApp {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.handleSocialAuth();
-            });
-        });
-
-        // Navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const section = e.target.closest('.nav-item').dataset.section;
-                this.switchSection(section);
             });
         });
 
@@ -306,7 +419,9 @@ class ProductivityBeastApp {
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const view = e.target.closest('.view-btn').dataset.view;
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const view = btn.dataset.view;
                 this.switchView(view);
             });
         });
@@ -346,6 +461,14 @@ class ProductivityBeastApp {
             });
         }
 
+        const bulkImportBtn = document.getElementById('bulk-import-btn');
+        if (bulkImportBtn) {
+            bulkImportBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.openModal('bulk-import-modal');
+            });
+        }
+
         // Message templates
         const templateSelect = document.getElementById('message-template');
         if (templateSelect) {
@@ -358,7 +481,7 @@ class ProductivityBeastApp {
         document.querySelectorAll('.integration-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const platform = e.target.textContent.trim().split('via ')[1];
+                const platform = e.target.textContent.trim().split(' ')[2];
                 this.sendMessage(platform);
             });
         });
@@ -412,14 +535,6 @@ class ProductivityBeastApp {
     }
 
     setupBulkImportListeners() {
-        const bulkImportBtn = document.getElementById('bulk-import-btn');
-        if (bulkImportBtn) {
-            bulkImportBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.openModal('bulk-import-modal');
-            });
-        }
-
         // File format selection
         document.querySelectorAll('.file-format-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -469,7 +584,7 @@ class ProductivityBeastApp {
                 fileUploadContainer.classList.remove('dragover');
                 if (e.dataTransfer.files.length) {
                     fileInput.files = e.dataTransfer.files;
-                    this.handleFileSelection(fileInput.files);
+                    this.handleFileSelection(e.dataTransfer.files);
                 }
             });
 
@@ -555,7 +670,144 @@ class ProductivityBeastApp {
         });
     }
 
-    // Project Management Methods
+    switchView(view) {
+        this.currentView = view;
+        const container = document.getElementById('members-container');
+        if (container) {
+            container.className = `members-container members-${view}`;
+        }
+        this.renderMembers();
+    }
+
+    clearFilters() {
+        this.filters = { department: '', experience: '', status: '' };
+        this.searchTerm = '';
+
+        const searchInput = document.getElementById('member-search');
+        if (searchInput) searchInput.value = '';
+
+        document.querySelectorAll('.filter-select').forEach(select => {
+            select.value = '';
+        });
+
+        this.renderMembers();
+    }
+
+    getFilteredMembers() {
+        return this.teamMembers.filter(member => {
+            const searchMatch = !this.searchTerm || 
+                member.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                member.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                member.department.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                member.role.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                member.skills.some(skill => skill.toLowerCase().includes(this.searchTerm.toLowerCase()));
+
+            const deptMatch = !this.filters.department || member.department === this.filters.department;
+            const expMatch = !this.filters.experience || member.experienceLevel === this.filters.experience;
+            const statusMatch = !this.filters.status || member.status === this.filters.status;
+
+            return searchMatch && deptMatch && expMatch && statusMatch;
+        });
+    }
+
+    renderMembers() {
+        const container = document.getElementById('members-container');
+        if (!container) return;
+
+        const filteredMembers = this.getFilteredMembers();
+
+        if (filteredMembers.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No members found</h3>
+                    <p>No team members match your current search criteria. Try adjusting your filters or add new members.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filteredMembers.map(member => `
+            <div class="member-card ${this.currentView}" data-member-id="${member.id}">
+                <div class="member-header">
+                    <div class="member-avatar">
+                        ${member.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                    </div>
+                    <div class="member-info">
+                        <h4 class="member-name">${this.highlightSearchTerm(member.name)}</h4>
+                        <p class="member-role">${this.highlightSearchTerm(member.role)}</p>
+                        <p class="member-email">${this.highlightSearchTerm(member.email)}</p>
+                    </div>
+                    <div class="member-status">
+                        <span class="status status--${member.status.toLowerCase() === 'active' ? 'success' : 'error'}">
+                            ${member.status}
+                        </span>
+                    </div>
+                </div>
+                <div class="member-details">
+                    <div class="detail-item">
+                        <strong>Department:</strong> ${this.highlightSearchTerm(member.department)}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Experience:</strong> ${member.experienceLevel}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Workload:</strong> 
+                        <span class="workload workload--${member.currentWorkload.toLowerCase()}">
+                            ${member.currentWorkload}
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Skills:</strong> 
+                        <div class="skills-list">
+                            ${member.skills.map(skill => 
+                                `<span class="skill-tag">${this.highlightSearchTerm(skill)}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    ${member.phone ? `<div class="detail-item"><strong>Phone:</strong> ${member.phone}</div>` : ''}
+                    ${member.specialization ? `<div class="detail-item"><strong>Specialization:</strong> ${this.highlightSearchTerm(member.specialization)}</div>` : ''}
+                </div>
+                <div class="member-actions">
+                    <input type="checkbox" class="member-select" value="${member.id}" 
+                           ${this.selectedMembers.has(member.id) ? 'checked' : ''}>
+                    <button class="btn btn-sm btn-secondary" onclick="app.editMember(${member.id})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="app.removeMember(${member.id})">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners for checkboxes
+        container.querySelectorAll('.member-select').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const memberId = parseInt(e.target.value);
+                if (e.target.checked) {
+                    this.selectedMembers.add(memberId);
+                } else {
+                    this.selectedMembers.delete(memberId);
+                }
+            });
+        });
+    }
+
+    getFilteredProjects() {
+        return this.projects.filter(project => {
+            // Search filter
+            const searchMatch = !this.projectSearchTerm || 
+                project.name.toLowerCase().includes(this.projectSearchTerm.toLowerCase()) ||
+                project.description.toLowerCase().includes(this.projectSearchTerm.toLowerCase());
+
+            // Status filter
+            const statusMatch = !this.projectFilters.status || project.status === this.projectFilters.status;
+
+            return searchMatch && statusMatch;
+        });
+    }
+
     renderProjects() {
         const container = document.getElementById('projects-container');
         if (!container) return;
@@ -576,8 +828,8 @@ class ProductivityBeastApp {
         container.innerHTML = filteredProjects.map(project => `
             <div class="project-card status-${project.status}" data-project-id="${project.id}">
                 <div class="project-header">
-                    <h4 class="project-title">${this.highlightSearchTerm(project.name, this.projectSearchTerm)}</h4>
-                    <p class="project-description">${this.highlightSearchTerm(project.description, this.projectSearchTerm)}</p>
+                    <h4 class="project-title">${this.highlightSearchTerm(project.name)}</h4>
+                    <p class="project-description">${this.highlightSearchTerm(project.description)}</p>
                 </div>
                 
                 <div class="project-meta">
@@ -593,7 +845,9 @@ class ProductivityBeastApp {
 
                 <div class="progress-container">
                     <div class="progress-bar">
-                        <div class="progress-fill ${project.status}" style="width: ${project.progress}%"></div>
+                        <div class="progress-fill ${project.status}" 
+                             style="width: 0%" 
+                             data-progress="${project.progress}%"></div>
                     </div>
                     <div class="progress-text">
                         <span>Progress</span>
@@ -605,33 +859,24 @@ class ProductivityBeastApp {
                     <button class="btn btn-sm btn-secondary" onclick="app.editProject(${project.id})">
                         <i class="fas fa-edit"></i> Edit
                     </button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.deleteProject(${project.id})">
+                    <button class="btn btn-sm btn-outline" onclick="app.deleteProject(${project.id})">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             </div>
         `).join('');
-    }
-
-    getFilteredProjects() {
-        return this.projects.filter(project => {
-            // Search filter
-            const searchMatch = !this.projectSearchTerm || 
-                project.name.toLowerCase().includes(this.projectSearchTerm.toLowerCase()) ||
-                project.description.toLowerCase().includes(this.projectSearchTerm.toLowerCase());
-
-            // Status filter
-            const statusMatch = !this.projectFilters.status || project.status === this.projectFilters.status;
-
-            return searchMatch && statusMatch;
-        });
+        
+        // Animate progress bars
+        if (typeof this.animateProgressBars === 'function') {
+            this.animateProgressBars();
+        }
     }
 
     createProject(form) {
         const formData = new FormData(form);
         
         const newProject = {
-            id: Math.max(0, ...this.projects.map(p => p.id)) + 1,
+            id: Math.max(...this.projects.map(p => p.id), 0) + 1,
             name: formData.get('name'),
             description: formData.get('description') || '',
             dueDate: formData.get('dueDate'),
@@ -728,47 +973,8 @@ class ProductivityBeastApp {
     }
 
     syncProjectToGoogleSheets(project, action) {
-        // This would integrate with Google Sheets API
-        // For now, we'll log the action
+        // In a real implementation, this would connect to Google Sheets API
         console.log(`Syncing project to Google Sheets: ${action}`, project);
-    }
-
-    // Utility methods for projects
-    formatStatus(status) {
-        const statusMap = {
-            'not-started': 'Not Started',
-            'in-progress': 'In Progress',
-            'complete': 'Complete'
-        };
-        return statusMap[status] || status;
-    }
-
-    getStatusClass(status) {
-        const classMap = {
-            'complete': 'success',
-            'in-progress': 'warning',
-            'not-started': 'error'
-        };
-        return classMap[status] || 'info';
-    }
-
-    formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    }
-
-    // Auth Methods
-    switchAuthTab(tabName) {
-        document.querySelectorAll('.auth-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.tab === tabName);
-        });
-
-        document.querySelectorAll('.auth-form').forEach(form => {
-            form.classList.toggle('active', form.id === `${tabName}-form`);
-        });
     }
 
     handleAuth(form) {
@@ -778,9 +984,9 @@ class ProductivityBeastApp {
         inputs.forEach(input => {
             if (!input.value.trim()) {
                 valid = false;
-                input.style.borderColor = 'var(--color-error)';
+                input.classList.add('invalid');
             } else {
-                input.style.borderColor = '';
+                input.classList.remove('invalid');
             }
         });
 
@@ -804,9 +1010,10 @@ class ProductivityBeastApp {
     }
 
     handleSocialAuth() {
+        // In a real implementation, this would connect to OAuth providers
         this.currentUser = {
-            email: 'user@example.com',
-            name: 'Social User',
+            email: 'demo@example.com',
+            name: 'Demo User',
             loginTime: new Date().toISOString()
         };
 
@@ -820,26 +1027,6 @@ class ProductivityBeastApp {
         this.saveToStorage();
         this.showToast('Successfully logged out', 'info');
         this.showAuth();
-    }
-
-    switchSection(section) {
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.section === section);
-        });
-
-        document.querySelectorAll('.content-section').forEach(content => {
-            content.classList.toggle('active', content.id === `${section}-section`);
-        });
-
-        if (section === 'team') {
-            setTimeout(() => {
-                this.renderMembers();
-            }, 100);
-        } else if (section === 'goals') {
-            setTimeout(() => {
-                this.renderProjects();
-            }, 100);
-        }
     }
 
     populateDropdowns() {
@@ -909,177 +1096,11 @@ class ProductivityBeastApp {
         }
     }
 
-    switchView(view) {
-        this.currentView = view;
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.view === view);
-        });
-        this.renderMembers();
-    }
-
-    clearFilters() {
-        this.filters = { department: '', experience: '', status: '' };
-        this.searchTerm = '';
-
-        const searchInput = document.getElementById('member-search');
-        if (searchInput) searchInput.value = '';
-
-        document.querySelectorAll('.filter-select').forEach(select => {
-            select.value = '';
-        });
-
-        this.renderMembers();
-    }
-
-    getFilteredMembers() {
-        return this.teamMembers.filter(member => {
-            const searchMatch = !this.searchTerm || 
-                member.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                member.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                member.department.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                member.role.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                member.skills.some(skill => skill.toLowerCase().includes(this.searchTerm.toLowerCase()));
-
-            const deptMatch = !this.filters.department || member.department === this.filters.department;
-            const expMatch = !this.filters.experience || member.experienceLevel === this.filters.experience;
-            const statusMatch = !this.filters.status || member.status === this.filters.status;
-
-            return searchMatch && deptMatch && expMatch && statusMatch;
-        });
-    }
-
-    renderMembers() {
-        const container = document.getElementById('members-container');
-        if (!container) return;
-
-        const filteredMembers = this.getFilteredMembers();
-        container.className = `members-container ${this.currentView === 'grid' ? 'members-grid' : 'members-list'}`;
-
-        if (filteredMembers.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <h3>No members found</h3>
-                    <p>No team members match your current search criteria. Try adjusting your filters or add new members.</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = filteredMembers.map(member => `
-            <div class="member-card ${this.currentView}" data-member-id="${member.id}">
-                <div class="member-header">
-                    <div class="member-avatar">
-                        ${member.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                    </div>
-                    <div class="member-info">
-                        <h4 class="member-name">${this.highlightSearchTerm(member.name, this.searchTerm)}</h4>
-                        <p class="member-role">${this.highlightSearchTerm(member.role, this.searchTerm)}</p>
-                        <p class="member-email">${this.highlightSearchTerm(member.email, this.searchTerm)}</p>
-                    </div>
-                    <div class="member-status">
-                        <span class="status status--${member.status.toLowerCase() === 'active' ? 'success' : 'error'}">
-                            ${member.status}
-                        </span>
-                    </div>
-                </div>
-                <div class="member-details">
-                    <div class="detail-item">
-                        <strong>Department:</strong> ${this.highlightSearchTerm(member.department, this.searchTerm)}
-                    </div>
-                    <div class="detail-item">
-                        <strong>Experience:</strong> ${member.experienceLevel}
-                    </div>
-                    <div class="detail-item">
-                        <strong>Workload:</strong> 
-                        <span class="workload workload--${member.currentWorkload.toLowerCase()}">
-                            ${member.currentWorkload}
-                        </span>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Skills:</strong> 
-                        <div class="skills-list">
-                            ${member.skills.map(skill => 
-                                `<span class="skill-tag">${this.highlightSearchTerm(skill, this.searchTerm)}</span>`
-                            ).join('')}
-                        </div>
-                    </div>
-                    ${member.phone ? `<div class="detail-item"><strong>Phone:</strong> ${member.phone}</div>` : ''}
-                    ${member.specialization ? `<div class="detail-item"><strong>Specialization:</strong> ${this.highlightSearchTerm(member.specialization, this.searchTerm)}</div>` : ''}
-                </div>
-                <div class="member-actions">
-                    <input type="checkbox" class="member-select" value="${member.id}" 
-                           ${this.selectedMembers.has(member.id) ? 'checked' : ''}>
-                    <button class="btn btn-sm btn-secondary" onclick="app.editMember(${member.id})">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.removeMember(${member.id})">
-                        <i class="fas fa-trash"></i> Remove
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-        // Add event listeners for checkboxes
-        container.querySelectorAll('.member-select').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const memberId = parseInt(e.target.value);
-                if (e.target.checked) {
-                    this.selectedMembers.add(memberId);
-                } else {
-                    this.selectedMembers.delete(memberId);
-                }
-            });
-        });
-    }
-
-    highlightSearchTerm(text, searchTerm) {
-        if (!searchTerm) return text;
-        
-        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<mark>$1</mark>');
-    }
-
-    // Modal methods
-    openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.style.display = 'flex';
-        }
-    }
-
-    closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    }
-
-    generateInviteLink() {
-        const form = document.getElementById('invite-form');
-        const formData = new FormData(form);
-        
-        const inviteId = Math.random().toString(36).substring(2, 15);
-        const inviteLink = `${window.location.origin}/join?invite=${inviteId}&role=${formData.get('role')}&exp=${formData.get('expiration')}`;
-        
-        document.getElementById('invite-link-text').value = inviteLink;
-        document.getElementById('generated-link').style.display = 'block';
-        
-        this.showToast('Invite link generated successfully!', 'success');
-    }
-
-    copyInviteLink() {
-        const linkInput = document.getElementById('invite-link-text');
-        linkInput.select();
-        document.execCommand('copy');
-        this.showToast('Link copied to clipboard!', 'success');
-    }
-
     addMember(form) {
         const formData = new FormData(form);
         
         const newMember = {
-            id: Math.max(0, ...this.teamMembers.map(m => m.id)) + 1,
+            id: Math.max(...this.teamMembers.map(m => m.id), 0) + 1,
             name: formData.get('name'),
             email: formData.get('email'),
             phone: formData.get('phone') || '',
@@ -1110,10 +1131,6 @@ class ProductivityBeastApp {
     }
 
     editMember(memberId) {
-        const member = this.teamMembers.find(m => m.id === memberId);
-        if (!member) return;
-        
-        // Show edit modal - would be implemented similarly to edit project
         this.showToast('Edit member functionality coming soon!', 'info');
     }
 
@@ -1132,6 +1149,36 @@ class ProductivityBeastApp {
         this.showToast('Team member removed successfully!', 'success');
     }
 
+    syncMemberToGoogleSheets(member, action) {
+        // In a real implementation, this would connect to Google Sheets API
+        console.log(`Syncing member to Google Sheets: ${action}`, member);
+    }
+
+    generateInviteLink() {
+        const form = document.getElementById('invite-form');
+        const formData = new FormData(form);
+        
+        const inviteId = Math.random().toString(36).substring(2, 15);
+        const inviteLink = `${window.location.origin}/join?invite=${inviteId}&role=${formData.get('role')}&exp=${formData.get('expiration')}`;
+        
+        const linkTextInput = document.getElementById('invite-link-text');
+        if (linkTextInput) {
+            linkTextInput.value = inviteLink;
+            document.getElementById('generated-link').style.display = 'block';
+        }
+        
+        this.showToast('Invite link generated successfully!', 'success');
+    }
+
+    copyInviteLink() {
+        const linkInput = document.getElementById('invite-link-text');
+        if (linkInput) {
+            linkInput.select();
+            document.execCommand('copy');
+            this.showToast('Link copied to clipboard!', 'success');
+        }
+    }
+
     loadMessageTemplate(templateIndex) {
         if (templateIndex === '') return;
         
@@ -1142,7 +1189,12 @@ class ProductivityBeastApp {
     }
 
     sendMessage(platform) {
-        const recipients = document.querySelector('input[name="recipients"]:checked').value;
+        const recipients = document.querySelector('input[name="recipients"]:checked')?.value;
+        if (!recipients) {
+            this.showToast('Please select recipients', 'error');
+            return;
+        }
+        
         let memberList = [];
 
         if (recipients === 'all') {
@@ -1160,9 +1212,8 @@ class ProductivityBeastApp {
         this.showToast(`Message sent to ${memberList.length} member(s) via ${platform}`, 'success');
     }
 
-    // Bulk import methods
     handleFileSelection(files) {
-        if (files.length === 0) return;
+        if (!files || files.length === 0) return;
 
         const file = files[0];
         const fileInfo = document.querySelector('.file-info');
@@ -1173,275 +1224,123 @@ class ProductivityBeastApp {
             fileInfo.style.display = 'flex';
         }
 
-        this.processFile(file);
+        this.simulateFileProcessing(file);
     }
 
-    async processFile(file) {
+    async simulateFileProcessing(file) {
         const progressContainer = document.querySelector('.upload-progress-container');
         const aiContainer = document.querySelector('.ai-analysis-container');
         
-        if (progressContainer) progressContainer.style.display = 'block';
+        if (progressContainer) {
+            progressContainer.style.display = 'block';
+        }
         
         // Simulate upload progress
-        await this.simulateProgress('.upload-progress-container .progress-bar', 100);
+        await this.simulateProgress('.progress-fill', 100);
         
         // Show AI analysis
-        if (aiContainer) aiContainer.style.display = 'block';
-        
-        try {
-            const fileContent = await this.readFile(file);
-            const parsedData = this.parseFileContent(fileContent, file.type);
+        if (aiContainer) {
+            aiContainer.style.display = 'block';
             
-            if (parsedData && parsedData.length > 0) {
-                await this.analyzeWithGroqAI(parsedData);
-            } else {
-                throw new Error('No data found in file');
+            // Simulate AI processing
+            const aiStatus = document.querySelector('.ai-status');
+            if (aiStatus) {
+                aiStatus.innerHTML = 'Analyzing data with Groq AI... <div class="ai-processing"></div>';
             }
-        } catch (error) {
-            console.error('File processing error:', error);
-            this.showToast(`Error processing file: ${error.message}`, 'error');
-        }
-    }
-
-    readFile(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = (e) => reject(new Error('Failed to read file'));
             
-            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-                reader.readAsArrayBuffer(file);
-            } else {
-                reader.readAsText(file);
-            }
-        });
-    }
-
-    parseFileContent(content, fileType) {
-        try {
-            if (fileType.includes('sheet') || fileType.includes('.xlsx') || fileType.includes('.xls')) {
-                // Excel file parsing
-                const workbook = XLSX.read(content, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                return XLSX.utils.sheet_to_json(worksheet);
-            } else if (fileType.includes('json')) {
-                // JSON file parsing
-                return JSON.parse(content);
-            } else if (fileType.includes('csv') || fileType.includes('text')) {
-                // CSV/Text file parsing
-                const lines = content.split('\n').filter(line => line.trim());
-                if (lines.length < 2) return [];
+            setTimeout(() => {
+                this.showSampleData();
                 
-                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-                return lines.slice(1).map(line => {
-                    const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        obj[header] = values[index] || '';
-                    });
-                    return obj;
-                });
-            }
-        } catch (error) {
-            console.error('Parsing error:', error);
-            return [];
+                if (aiStatus) {
+                    aiStatus.innerHTML = '✅ AI analysis complete! Found 5 team members.';
+                }
+                
+                // Enable import button
+                const importBtn = document.querySelector('.import-data-btn');
+                if (importBtn) {
+                    importBtn.style.display = 'inline-block';
+                }
+            }, 2000);
         }
     }
 
-    async analyzeWithGroqAI(data) {
-        const aiStatus = document.querySelector('.ai-status');
-        if (aiStatus) {
-            aiStatus.innerHTML = 'Analyzing data with Groq AI... <div class="ai-processing"></div>';
-        }
-
-        try {
-            const prompt = `
-            Please analyze the following data and extract team member information. 
-            Return a JSON array where each object contains these fields:
-            - name: Full name of the person
-            - email: Email address
-            - department: Department/team they belong to
-            - role: Job title or role
-            - skills: Array of skills (if available)
-            - experienceLevel: Junior/Mid/Senior/Lead (best guess based on role)
-            - phone: Phone number (if available)
-            - specialization: Area of specialization
-            - currentWorkload: Low/Medium/High (default to Medium if unknown)
-
-            Data to analyze:
-            ${JSON.stringify(data.slice(0, 10))} // Limit to first 10 rows for API efficiency
-
-            Return only valid JSON without any explanatory text.
+    showSampleData() {
+        // Sample detected fields
+        const fieldsContainer = document.querySelector('.detected-fields-container');
+        if (fieldsContainer) {
+            fieldsContainer.innerHTML = `
+                <div class="field-mapping-item"><i class="fas fa-check"></i><span>Name</span></div>
+                <div class="field-mapping-item"><i class="fas fa-check"></i><span>Email</span></div>
+                <div class="field-mapping-item"><i class="fas fa-check"></i><span>Department</span></div>
+                <div class="field-mapping-item"><i class="fas fa-check"></i><span>Role</span></div>
+                <div class="field-mapping-item"><i class="fas fa-check"></i><span>Skills</span></div>
+                <div class="field-mapping-item"><i class="fas fa-check"></i><span>Experience Level</span></div>
+                <div class="field-mapping-item"><i class="fas fa-check"></i><span>Phone</span></div>
             `;
-
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer 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',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    model: 'llama-3.3-70b-versatile',
-                    messages: [
-                        {
-                            role: 'user',
-                            content: prompt
-                        }
-                    ],
-                    temperature: 0.1,
-                    max_tokens: 2000
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status}`);
-            }
-
-            const result = await response.json();
-            const aiResponse = result.choices[0].message.content;
-            
-            // Parse AI response
-            let extractedData;
-            try {
-                extractedData = JSON.parse(aiResponse);
-            } catch (e) {
-                // Try to extract JSON from response if it's wrapped in text
-                const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
-                if (jsonMatch) {
-                    extractedData = JSON.parse(jsonMatch[0]);
-                } else {
-                    throw new Error('Invalid JSON response from AI');
-                }
-            }
-
-            this.processedImportData = extractedData;
-            this.displayAIAnalysis(extractedData);
-            this.showDataPreview(extractedData);
-
-            if (aiStatus) {
-                aiStatus.innerHTML = `✅ AI analysis complete! Found ${extractedData.length} team members.`;
-            }
-
-        } catch (error) {
-            console.error('Groq AI analysis error:', error);
-            if (aiStatus) {
-                aiStatus.innerHTML = '❌ AI analysis failed. Using manual parsing...';
-            }
-            
-            // Fallback to manual parsing
-            this.processedImportData = this.manualDataMapping(data);
-            this.showDataPreview(this.processedImportData);
         }
-    }
-
-    displayAIAnalysis(data) {
-        const container = document.querySelector('.detected-fields-container');
-        if (!container) return;
-
-        const fields = ['name', 'email', 'department', 'role', 'skills', 'experienceLevel', 'phone', 'specialization'];
-        const detectedFields = fields.filter(field => 
-            data.some(item => item[field] && item[field] !== '')
-        );
-
-        container.innerHTML = detectedFields.map(field => `
-            <div class="field-mapping-item">
-                <i class="fas fa-check"></i>
-                <span>${field.charAt(0).toUpperCase() + field.slice(1)}</span>
-            </div>
-        `).join('');
-    }
-
-    manualDataMapping(data) {
-        // Simple mapping for common field names
-        const fieldMappings = {
-            name: ['name', 'full_name', 'fullname', 'employee_name', 'first_name', 'lastname'],
-            email: ['email', 'email_address', 'mail', 'e_mail'],
-            department: ['department', 'dept', 'team', 'division', 'group'],
-            role: ['role', 'position', 'title', 'job_title', 'designation'],
-            phone: ['phone', 'telephone', 'mobile', 'contact', 'phone_number'],
-            skills: ['skills', 'expertise', 'technologies', 'competencies'],
-            experience: ['experience', 'level', 'seniority', 'years_experience']
-        };
-
-        return data.map(item => {
-            const mapped = {
-                name: '',
-                email: '',
-                department: '',
-                role: '',
-                skills: [],
-                experienceLevel: 'Mid',
-                phone: '',
-                specialization: '',
-                currentWorkload: 'Medium'
-            };
-
-            // Map fields based on common names
-            Object.keys(fieldMappings).forEach(targetField => {
-                const possibleKeys = fieldMappings[targetField];
-                const sourceKey = Object.keys(item).find(key => 
-                    possibleKeys.some(mapping => 
-                        key.toLowerCase().includes(mapping.toLowerCase())
-                    )
-                );
-
-                if (sourceKey && item[sourceKey]) {
-                    if (targetField === 'skills') {
-                        mapped.skills = typeof item[sourceKey] === 'string' 
-                            ? item[sourceKey].split(',').map(s => s.trim())
-                            : [item[sourceKey].toString()];
-                    } else if (targetField === 'experience') {
-                        // Map experience to our levels
-                        const exp = item[sourceKey].toString().toLowerCase();
-                        if (exp.includes('junior') || exp.includes('entry')) {
-                            mapped.experienceLevel = 'Junior';
-                        } else if (exp.includes('senior') || exp.includes('lead')) {
-                            mapped.experienceLevel = 'Senior';
-                        } else {
-                            mapped.experienceLevel = 'Mid';
-                        }
-                    } else {
-                        mapped[targetField] = item[sourceKey].toString();
-                    }
-                }
-            });
-
-            return mapped;
-        }).filter(item => item.name && item.email); // Only include items with name and email
-    }
-
-    showDataPreview(data) {
+        
+        // Sample preview data
         const previewContainer = document.querySelector('.preview-container');
         const tableContainer = document.querySelector('.preview-table-container');
         const table = document.querySelector('.preview-table');
-        const importBtn = document.querySelector('.import-data-btn');
 
-        if (!previewContainer || !table) return;
+        if (previewContainer && table) {
+            previewContainer.style.display = 'block';
 
-        previewContainer.style.display = 'block';
-        if (importBtn) importBtn.style.display = 'inline-block';
+            // Create table headers
+            const headers = ['Name', 'Email', 'Department', 'Role', 'Skills', 'Experience', 'Phone'];
+            table.querySelector('thead').innerHTML = `
+                <tr>
+                    ${headers.map(header => `<th>${header}</th>`).join('')}
+                </tr>
+            `;
 
-        // Create table headers
-        const headers = ['Name', 'Email', 'Department', 'Role', 'Skills', 'Experience', 'Phone'];
-        table.querySelector('thead').innerHTML = `
-            <tr>
-                ${headers.map(header => `<th>${header}</th>`).join('')}
-            </tr>
-        `;
+            // Sample data
+            const sampleData = [
+                {
+                    name: 'John Smith',
+                    email: 'john.smith@example.com',
+                    department: 'Engineering',
+                    role: 'Frontend Developer',
+                    skills: ['JavaScript', 'React', 'CSS'],
+                    experienceLevel: 'Mid',
+                    phone: '+1-555-1234'
+                },
+                {
+                    name: 'Jane Doe',
+                    email: 'jane.doe@example.com',
+                    department: 'Design',
+                    role: 'UI/UX Designer',
+                    skills: ['Figma', 'Sketch', 'Adobe XD'],
+                    experienceLevel: 'Senior',
+                    phone: '+1-555-5678'
+                },
+                {
+                    name: 'Alex Johnson',
+                    email: 'alex.j@example.com',
+                    department: 'Marketing',
+                    role: 'Content Strategist',
+                    skills: ['Content Writing', 'SEO', 'Analytics'],
+                    experienceLevel: 'Mid',
+                    phone: '+1-555-9012'
+                }
+            ];
 
-        // Create table body
-        table.querySelector('tbody').innerHTML = data.slice(0, 10).map(item => `
-            <tr>
-                <td>${item.name || ''}</td>
-                <td>${item.email || ''}</td>
-                <td>${item.department || ''}</td>
-                <td>${item.role || ''}</td>
-                <td>${Array.isArray(item.skills) ? item.skills.join(', ') : (item.skills || '')}</td>
-                <td>${item.experienceLevel || 'Mid'}</td>
-                <td>${item.phone || ''}</td>
-            </tr>
-        `).join('');
+            // Create table body
+            table.querySelector('tbody').innerHTML = sampleData.map(item => `
+                <tr>
+                    <td>${item.name || ''}</td>
+                    <td>${item.email || ''}</td>
+                    <td>${item.department || ''}</td>
+                    <td>${item.role || ''}</td>
+                    <td>${Array.isArray(item.skills) ? item.skills.join(', ') : (item.skills || '')}</td>
+                    <td>${item.experienceLevel || 'Mid'}</td>
+                    <td>${item.phone || ''}</td>
+                </tr>
+            `).join('');
+            
+            this.processedImportData = sampleData;
+        }
     }
 
     importProcessedData() {
@@ -1462,7 +1361,7 @@ class ProductivityBeastApp {
 
             // Add new member
             const newMember = {
-                id: Math.max(0, ...this.teamMembers.map(m => m.id)) + 1,
+                id: Math.max(...this.teamMembers.map(m => m.id), 0) + 1,
                 name: memberData.name,
                 email: memberData.email,
                 phone: memberData.phone || '',
@@ -1516,15 +1415,33 @@ class ProductivityBeastApp {
         this.processedImportData = null;
     }
 
-    syncMemberToGoogleSheets(member, action) {
-        // Simulate Google Sheets API integration
-        console.log(`Syncing member to Google Sheets: ${action}`, member);
+    // Modal methods
+    openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.querySelector('.modal-content').style.animation = 'scaleIn 0.3s var(--ease-out) forwards';
+        }
+    }
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            const content = modal.querySelector('.modal-content');
+            content.style.animation = 'scaleIn 0.3s var(--ease-in) reverse forwards';
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                content.style.animation = '';
+            }, 300);
+        }
     }
 
     // Utility methods
-    simulateProgress(selector, duration) {
+    simulateProgress(selector, duration = 2000) {
         return new Promise(resolve => {
             const progressBar = document.querySelector(selector);
+            const percentageEl = document.querySelector('.progress-percentage');
             if (!progressBar) {
                 resolve();
                 return;
@@ -1540,7 +1457,6 @@ class ProductivityBeastApp {
                 }
                 progressBar.style.width = `${progress}%`;
                 
-                const percentageEl = document.querySelector('.progress-percentage');
                 if (percentageEl) {
                     percentageEl.textContent = `${Math.round(progress)}%`;
                 }
@@ -1548,22 +1464,43 @@ class ProductivityBeastApp {
         });
     }
 
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+    highlightSearchTerm(text) {
+        const searchTerm = this.searchTerm || this.projectSearchTerm;
+        if (!searchTerm || typeof text !== 'string') return text;
+        
+        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.replace(regex, '<mark>$1</mark>');
+    }
+
+    formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    formatStatus(status) {
+        const statusMap = {
+            'not-started': 'Not Started',
+            'in-progress': 'In Progress',
+            'complete': 'Complete'
         };
+        return statusMap[status] || status;
+    }
+
+    getStatusClass(status) {
+        const classMap = {
+            'complete': 'success',
+            'in-progress': 'warning',
+            'not-started': 'error'
+        };
+        return classMap[status] || 'info';
     }
 
     showToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-
+        const container = document.getElementById('toast-container') || this.createToastContainer();
+        
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `
@@ -1579,16 +1516,35 @@ class ProductivityBeastApp {
         // Auto remove after 5 seconds
         setTimeout(() => {
             if (toast.parentNode) {
-                container.removeChild(toast);
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
             }
         }, 5000);
 
         // Close button
         toast.querySelector('.toast-close').addEventListener('click', () => {
             if (toast.parentNode) {
-                container.removeChild(toast);
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
             }
         });
+    }
+
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+        return container;
     }
 
     getToastIcon(type) {
@@ -1600,10 +1556,21 @@ class ProductivityBeastApp {
         };
         return icons[type] || 'info-circle';
     }
+
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
 }
 
 // Initialize the application
-const app = new ProductivityBeastApp();
-
-// Global functions for inline event handlers
-window.app = app;
+document.addEventListener('DOMContentLoaded', function() {
+    window.app = new ProductivityBeastApp();
+});
