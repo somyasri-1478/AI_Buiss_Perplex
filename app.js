@@ -211,6 +211,9 @@ class ProductivityBeastApp {
         ];
         
         this.init();
+        this.createInteractiveBackground();
+        this.setupMouseInteraction();
+        this.optimizeAnimations();
     }
 
     init() {
@@ -274,7 +277,7 @@ class ProductivityBeastApp {
                 
                 setTimeout(() => {
                     document.getElementById(`${tabName}-form`).classList.add('active');
-                }, 50);
+                }, 300); // Slower transition for better visibility
             });
         });
         
@@ -389,6 +392,76 @@ class ProductivityBeastApp {
         // Call animation on page load and whenever projects are rendered
         document.addEventListener('DOMContentLoaded', animateProgressBars);
         this.animateProgressBars = animateProgressBars;
+    }
+
+    // Interactive Background Particles
+    createInteractiveBackground() {
+        const container = document.querySelector('.interactive-background');
+        if (!container) return;
+        
+        const particleCount = 30;
+        
+        for(let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'floating-particle';
+            
+            // Random properties
+            const size = Math.random() * 50 + 20;
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            const delay = Math.random() * 5;
+            
+            particle.style.cssText = `
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}%;
+                top: ${y}%;
+                animation: float ${Math.random() * 8 + 4}s infinite ${delay}s;
+                opacity: ${Math.random() * 0.4 + 0.2};
+            `;
+            
+            container.appendChild(particle);
+        }
+    }
+
+    // Mouse Movement Interaction
+    setupMouseInteraction() {
+        const container = document.querySelector('.auth-container');
+        if (!container) return;
+        
+        const particles = document.querySelectorAll('.floating-particle');
+        let mouseX = 0;
+        let mouseY = 0;
+
+        container.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 40;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 40;
+        });
+
+        function updateParticles() {
+            particles.forEach(particle => {
+                const speed = 0.3;
+                const xOffset = mouseX * speed;
+                const yOffset = mouseY * speed;
+                
+                particle.style.transform = `
+                    translate(${xOffset}px, ${yOffset}px)
+                    rotate(${xOffset * 0.1}deg)
+                `;
+            });
+            requestAnimationFrame(updateParticles);
+        }
+        updateParticles();
+    }
+
+    optimizeAnimations() {
+        // Reduce motion for users who prefer it
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (!mediaQuery || mediaQuery.matches) {
+            document.querySelectorAll('.floating-particle').forEach(p => {
+                p.style.animation = 'none';
+            });
+        }
     }
 
     // Analytics Methods
@@ -892,7 +965,7 @@ class ProductivityBeastApp {
         }
     }
 
-    // Continue with remaining methods
+    // All other methods continue here...
     loadFromStorage() {
         const stored = localStorage.getItem('productivityBeastData');
         if (stored) {
