@@ -19,6 +19,10 @@ class ProductivityBeastApp {
             status: ''
         };
         
+        // Analytics state
+        this.currentAnalyticsTab = 'overview';
+        this.charts = {};
+        
         // Bulk import data
         this.rawImportData = null;
         this.processedImportData = null;
@@ -38,7 +42,10 @@ class ProductivityBeastApp {
                 "currentWorkload": "High",
                 "status": "Active",
                 "joinDate": "2024-01-15",
-                "lastActivity": "2025-06-09"
+                "lastActivity": "2025-06-09",
+                "productivity": 92,
+                "tasksCompleted": 45,
+                "projectsCompleted": 8
             },
             {
                 "id": 2,
@@ -53,7 +60,10 @@ class ProductivityBeastApp {
                 "currentWorkload": "Medium",
                 "status": "Active",
                 "joinDate": "2024-03-20",
-                "lastActivity": "2025-06-08"
+                "lastActivity": "2025-06-08",
+                "productivity": 87,
+                "tasksCompleted": 38,
+                "projectsCompleted": 6
             },
             {
                 "id": 3,
@@ -68,7 +78,10 @@ class ProductivityBeastApp {
                 "currentWorkload": "Medium",
                 "status": "Active",
                 "joinDate": "2023-11-10",
-                "lastActivity": "2025-06-09"
+                "lastActivity": "2025-06-09",
+                "productivity": 89,
+                "tasksCompleted": 42,
+                "projectsCompleted": 7
             },
             {
                 "id": 4,
@@ -83,7 +96,10 @@ class ProductivityBeastApp {
                 "currentWorkload": "High",
                 "status": "Active",
                 "joinDate": "2024-02-01",
-                "lastActivity": "2025-06-09"
+                "lastActivity": "2025-06-09",
+                "productivity": 94,
+                "tasksCompleted": 51,
+                "projectsCompleted": 9
             },
             {
                 "id": 5,
@@ -98,11 +114,14 @@ class ProductivityBeastApp {
                 "currentWorkload": "Medium",
                 "status": "Active",
                 "joinDate": "2024-04-15",
-                "lastActivity": "2025-06-08"
+                "lastActivity": "2025-06-08",
+                "productivity": 85,
+                "tasksCompleted": 36,
+                "projectsCompleted": 5
             }
         ];
 
-        // Sample projects data
+        // Sample projects data with daily progress
         this.projects = [
             {
                 "id": 1,
@@ -111,7 +130,16 @@ class ProductivityBeastApp {
                 "dueDate": "2025-07-15",
                 "progress": 100,
                 "status": "complete",
-                "createdDate": "2025-05-01"
+                "createdDate": "2025-05-01",
+                "assignedTo": ["Sarah Johnson", "Emily Rodriguez"],
+                "dailyProgress": [
+                    { date: "2025-06-01", progress: 85 },
+                    { date: "2025-06-02", progress: 88 },
+                    { date: "2025-06-03", progress: 92 },
+                    { date: "2025-06-04", progress: 95 },
+                    { date: "2025-06-05", progress: 98 },
+                    { date: "2025-06-06", progress: 100 }
+                ]
             },
             {
                 "id": 2,
@@ -120,7 +148,16 @@ class ProductivityBeastApp {
                 "dueDate": "2025-08-30",
                 "progress": 65,
                 "status": "in-progress",
-                "createdDate": "2025-04-15"
+                "createdDate": "2025-04-15",
+                "assignedTo": ["Sarah Johnson", "David Kim"],
+                "dailyProgress": [
+                    { date: "2025-06-01", progress: 50 },
+                    { date: "2025-06-02", progress: 52 },
+                    { date: "2025-06-03", progress: 55 },
+                    { date: "2025-06-04", progress: 58 },
+                    { date: "2025-06-05", progress: 62 },
+                    { date: "2025-06-06", progress: 65 }
+                ]
             },
             {
                 "id": 3,
@@ -129,7 +166,16 @@ class ProductivityBeastApp {
                 "dueDate": "2025-09-15",
                 "progress": 30,
                 "status": "in-progress",
-                "createdDate": "2025-06-01"
+                "createdDate": "2025-06-01",
+                "assignedTo": ["David Kim"],
+                "dailyProgress": [
+                    { date: "2025-06-01", progress: 10 },
+                    { date: "2025-06-02", progress: 15 },
+                    { date: "2025-06-03", progress: 20 },
+                    { date: "2025-06-04", progress: 25 },
+                    { date: "2025-06-05", progress: 28 },
+                    { date: "2025-06-06", progress: 30 }
+                ]
             },
             {
                 "id": 4,
@@ -138,7 +184,9 @@ class ProductivityBeastApp {
                 "dueDate": "2025-10-01",
                 "progress": 0,
                 "status": "not-started",
-                "createdDate": "2025-06-10"
+                "createdDate": "2025-06-10",
+                "assignedTo": [],
+                "dailyProgress": []
             }
         ];
 
@@ -177,7 +225,7 @@ class ProductivityBeastApp {
         }, 100);
     }
     
-    // New method for animations
+    // Enhanced method for animations including analytics
     setupAnimations() {
         // Add ripple effect to buttons
         document.querySelectorAll('.btn').forEach(button => {
@@ -198,7 +246,7 @@ class ProductivityBeastApp {
             });
         });
         
-        // Add tab indicator animation
+        // Add tab indicator animation for auth tabs
         const setTabIndicatorPosition = (tab) => {
             const indicator = document.querySelector('.tab-indicator');
             if (!indicator || !tab) return;
@@ -235,6 +283,40 @@ class ProductivityBeastApp {
             const activeTab = document.querySelector('.auth-tab.active');
             setTabIndicatorPosition(activeTab);
         }, 100);
+        
+        // Analytics tab indicator animation
+        const setAnalyticsTabIndicatorPosition = (tab) => {
+            const indicator = document.querySelector('.analytics-tab-indicator');
+            if (!indicator || !tab) return;
+            
+            const tabRect = tab.getBoundingClientRect();
+            const tabsRect = tab.parentElement.getBoundingClientRect();
+            
+            indicator.style.transform = `translateX(${tabRect.left - tabsRect.left}px)`;
+            indicator.style.width = `${tabRect.width}px`;
+        };
+        
+        document.querySelectorAll('.analytics-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabs = document.querySelectorAll('.analytics-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                setAnalyticsTabIndicatorPosition(this);
+                
+                const tabName = this.dataset.tab;
+                this.currentAnalyticsTab = tabName;
+                
+                document.querySelectorAll('.analytics-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                setTimeout(() => {
+                    document.getElementById(`${tabName}-analytics`).classList.add('active');
+                    this.initializeAnalyticsCharts(tabName);
+                }, 50);
+            });
+        });
         
         // Smooth section transitions
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -274,6 +356,10 @@ class ProductivityBeastApp {
                     setTimeout(() => {
                         this.renderProjects();
                     }, 100);
+                } else if (section === 'analytics') {
+                    setTimeout(() => {
+                        this.initializeAnalytics();
+                    }, 100);
                 }
             });
         });
@@ -305,6 +391,508 @@ class ProductivityBeastApp {
         this.animateProgressBars = animateProgressBars;
     }
 
+    // Analytics Methods
+    initializeAnalytics() {
+        // Set up the first analytics tab indicator position
+        setTimeout(() => {
+            const activeAnalyticsTab = document.querySelector('.analytics-tab.active');
+            if (activeAnalyticsTab) {
+                const indicator = document.querySelector('.analytics-tab-indicator');
+                if (indicator) {
+                    const tabRect = activeAnalyticsTab.getBoundingClientRect();
+                    const tabsRect = activeAnalyticsTab.parentElement.getBoundingClientRect();
+                    indicator.style.transform = `translateX(${tabRect.left - tabsRect.left}px)`;
+                    indicator.style.width = `${tabRect.width}px`;
+                }
+            }
+        }, 100);
+        
+        // Initialize charts for the current active tab
+        this.initializeAnalyticsCharts(this.currentAnalyticsTab);
+        
+        // Populate employee filter dropdown
+        const employeeFilter = document.getElementById('individual-employee-filter');
+        if (employeeFilter && employeeFilter.children.length === 1) {
+            this.teamMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = member.name;
+                employeeFilter.appendChild(option);
+            });
+        }
+    }
+
+    initializeAnalyticsCharts(tabName) {
+        // Destroy existing charts to prevent memory leaks
+        Object.values(this.charts).forEach(chart => {
+            if (chart && typeof chart.destroy === 'function') {
+                chart.destroy();
+            }
+        });
+        this.charts = {};
+
+        // Wait for the tab content to be visible
+        setTimeout(() => {
+            switch (tabName) {
+                case 'overview':
+                    this.createOverviewCharts();
+                    break;
+                case 'projects':
+                    this.createProjectsCharts();
+                    break;
+                case 'employees':
+                    this.createEmployeeCharts();
+                    break;
+                case 'performance':
+                    this.createPerformanceCharts();
+                    break;
+            }
+        }, 100);
+    }
+
+    createOverviewCharts() {
+        // Productivity Overview Chart
+        const productivityCtx = document.getElementById('productivity-overview-chart');
+        if (productivityCtx) {
+            this.charts.productivityOverview = new Chart(productivityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Productivity Score',
+                        data: [85, 89, 92, 87, 94, 88, 91],
+                        borderColor: '#8B45FF',
+                        backgroundColor: 'rgba(139, 69, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Team Performance Distribution
+        const teamPerformanceCtx = document.getElementById('team-performance-chart');
+        if (teamPerformanceCtx) {
+            this.charts.teamPerformance = new Chart(teamPerformanceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High Performers', 'Average Performers', 'Needs Improvement'],
+                    datasets: [{
+                        data: [60, 30, 10],
+                        backgroundColor: ['#48BB78', '#63B3FF', '#F56565']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Daily Activity Trends
+        const dailyTrendsCtx = document.getElementById('daily-trends-chart');
+        if (dailyTrendsCtx) {
+            this.charts.dailyTrends = new Chart(dailyTrendsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'Tasks Completed',
+                            data: [45, 52, 48, 61],
+                            backgroundColor: 'rgba(139, 69, 255, 0.8)'
+                        },
+                        {
+                            label: 'Projects Started',
+                            data: [8, 12, 10, 15],
+                            backgroundColor: 'rgba(99, 179, 255, 0.8)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    createProjectsCharts() {
+        // Project Completion Rate
+        const projectCompletionCtx = document.getElementById('project-completion-chart');
+        if (projectCompletionCtx) {
+            this.charts.projectCompletion = new Chart(projectCompletionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Completion Rate %',
+                        data: [65, 72, 78, 85, 89, 92],
+                        borderColor: '#48BB78',
+                        backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Project Status Overview
+        const projectStatusCtx = document.getElementById('project-status-chart');
+        if (projectStatusCtx) {
+            const statusCounts = this.projects.reduce((acc, project) => {
+                acc[project.status] = (acc[project.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            this.charts.projectStatus = new Chart(projectStatusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Complete', 'In Progress', 'Not Started'],
+                    datasets: [{
+                        data: [
+                            statusCounts.complete || 0,
+                            statusCounts['in-progress'] || 0,
+                            statusCounts['not-started'] || 0
+                        ],
+                        backgroundColor: ['#48BB78', '#ED8936', '#F56565']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Project Timeline
+        const timelineCtx = document.getElementById('project-timeline-chart');
+        if (timelineCtx) {
+            this.charts.projectTimeline = new Chart(timelineCtx, {
+                type: 'bar',
+                data: {
+                    labels: this.projects.map(p => p.name),
+                    datasets: [{
+                        label: 'Progress %',
+                        data: this.projects.map(p => p.progress),
+                        backgroundColor: this.projects.map(p => {
+                            if (p.status === 'complete') return '#48BB78';
+                            if (p.status === 'in-progress') return '#ED8936';
+                            return '#F56565';
+                        })
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Daily Project Progress
+        const projectProgressCtx = document.getElementById('project-progress-chart');
+        if (projectProgressCtx) {
+            const datasets = this.projects.filter(p => p.dailyProgress.length > 0).map((project, index) => ({
+                label: project.name,
+                data: project.dailyProgress.map(dp => dp.progress),
+                borderColor: ['#8B45FF', '#63B3FF', '#48BB78', '#ED8936'][index % 4],
+                backgroundColor: ['rgba(139, 69, 255, 0.1)', 'rgba(99, 179, 255, 0.1)', 'rgba(72, 187, 120, 0.1)', 'rgba(237, 137, 54, 0.1)'][index % 4],
+                tension: 0.4,
+                fill: false
+            }));
+
+            this.charts.projectProgress = new Chart(projectProgressCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jun 1', 'Jun 2', 'Jun 3', 'Jun 4', 'Jun 5', 'Jun 6'],
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    createEmployeeCharts() {
+        // Employee Productivity Score
+        const employeeProductivityCtx = document.getElementById('employee-productivity-chart');
+        if (employeeProductivityCtx) {
+            this.charts.employeeProductivity = new Chart(employeeProductivityCtx, {
+                type: 'bar',
+                data: {
+                    labels: this.teamMembers.map(m => m.name.split(' ')[0]),
+                    datasets: [{
+                        label: 'Productivity Score',
+                        data: this.teamMembers.map(m => m.productivity),
+                        backgroundColor: 'rgba(139, 69, 255, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Department Performance
+        const departmentPerformanceCtx = document.getElementById('department-performance-chart');
+        if (departmentPerformanceCtx) {
+            const deptPerformance = this.departments.map(dept => {
+                const deptMembers = this.teamMembers.filter(m => m.department === dept);
+                const avgProductivity = deptMembers.length > 0 
+                    ? deptMembers.reduce((sum, m) => sum + m.productivity, 0) / deptMembers.length 
+                    : 0;
+                return Math.round(avgProductivity);
+            });
+
+            this.charts.departmentPerformance = new Chart(departmentPerformanceCtx, {
+                type: 'radar',
+                data: {
+                    labels: this.departments,
+                    datasets: [{
+                        label: 'Department Performance',
+                        data: deptPerformance,
+                        borderColor: '#63B3FF',
+                        backgroundColor: 'rgba(99, 179, 255, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Individual Performance
+        const individualPerformanceCtx = document.getElementById('individual-performance-chart');
+        if (individualPerformanceCtx) {
+            this.charts.individualPerformance = new Chart(individualPerformanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: this.teamMembers.slice(0, 3).map((member, index) => ({
+                        label: member.name,
+                        data: [
+                            member.productivity - 5 + Math.random() * 10,
+                            member.productivity - 3 + Math.random() * 6,
+                            member.productivity - 2 + Math.random() * 4,
+                            member.productivity
+                        ].map(v => Math.max(0, Math.min(100, Math.round(v)))),
+                        borderColor: ['#8B45FF', '#63B3FF', '#48BB78'][index],
+                        tension: 0.4
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Weekly Activity
+        const weeklyActivityCtx = document.getElementById('weekly-activity-chart');
+        if (weeklyActivityCtx) {
+            this.charts.weeklyActivity = new Chart(weeklyActivityCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: [
+                        {
+                            label: 'Tasks Completed',
+                            data: [12, 15, 18, 14, 16],
+                            backgroundColor: 'rgba(139, 69, 255, 0.8)'
+                        },
+                        {
+                            label: 'Hours Worked',
+                            data: [8, 8.5, 9, 7.5, 8],
+                            backgroundColor: 'rgba(99, 179, 255, 0.8)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    createPerformanceCharts() {
+        // Performance Metrics
+        const performanceMetricsCtx = document.getElementById('performance-metrics-chart');
+        if (performanceMetricsCtx) {
+            this.charts.performanceMetrics = new Chart(performanceMetricsCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Quality', 'Speed', 'Collaboration', 'Innovation', 'Leadership'],
+                    datasets: [{
+                        label: 'Team Average',
+                        data: [88, 92, 85, 78, 82],
+                        borderColor: '#8B45FF',
+                        backgroundColor: 'rgba(139, 69, 255, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Goal Achievement
+        const goalAchievementCtx = document.getElementById('goal-achievement-chart');
+        if (goalAchievementCtx) {
+            this.charts.goalAchievement = new Chart(goalAchievementCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Achieved', 'In Progress', 'Pending'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: ['#48BB78', '#ED8936', '#F56565']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Performance Trends
+        const performanceTrendsCtx = document.getElementById('performance-trends-chart');
+        if (performanceTrendsCtx) {
+            this.charts.performanceTrends = new Chart(performanceTrendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'Team Performance',
+                            data: [78, 82, 85, 88, 91, 94],
+                            borderColor: '#8B45FF',
+                            backgroundColor: 'rgba(139, 69, 255, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Goal Achievement',
+                            data: [72, 75, 80, 85, 88, 92],
+                            borderColor: '#63B3FF',
+                            backgroundColor: 'rgba(99, 179, 255, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Continue with remaining methods
     loadFromStorage() {
         const stored = localStorage.getItem('productivityBeastData');
         if (stored) {
@@ -363,6 +951,9 @@ class ProductivityBeastApp {
             if (document.getElementById('goals-section').classList.contains('active')) {
                 this.renderProjects();
             }
+            if (document.getElementById('analytics-section').classList.contains('active')) {
+                this.initializeAnalytics();
+            }
         }, 100);
     }
 
@@ -398,11 +989,64 @@ class ProductivityBeastApp {
         // Project management controls
         this.setupProjectManagementListeners();
 
+        // Analytics controls
+        this.setupAnalyticsListeners();
+
         // Bulk import listeners
         this.setupBulkImportListeners();
 
         // Modal controls
         this.setupModalListeners();
+    }
+
+    setupAnalyticsListeners() {
+        // Period change listeners for different analytics sections
+        document.querySelectorAll('.chart-period select').forEach(select => {
+            select.addEventListener('change', (e) => {
+                const chartId = e.target.id;
+                // Update chart data based on period selection
+                this.updateChartPeriod(chartId, e.target.value);
+            });
+        });
+
+        // Individual employee filter
+        const employeeFilter = document.getElementById('individual-employee-filter');
+        if (employeeFilter) {
+            employeeFilter.addEventListener('change', (e) => {
+                this.updateIndividualPerformanceChart(e.target.value);
+            });
+        }
+    }
+
+    updateChartPeriod(chartId, period) {
+        // This method would update chart data based on the selected period
+        console.log(`Updating ${chartId} for period: ${period}`);
+    }
+
+    updateIndividualPerformanceChart(employeeId) {
+        if (employeeId === 'all') {
+            return;
+        }
+
+        const employee = this.teamMembers.find(m => m.id == employeeId);
+        if (!employee || !this.charts.individualPerformance) return;
+
+        // Update chart to show only selected employee
+        const weeklyData = [
+            employee.productivity - 5 + Math.random() * 10,
+            employee.productivity - 3 + Math.random() * 6,
+            employee.productivity - 2 + Math.random() * 4,
+            employee.productivity
+        ].map(v => Math.max(0, Math.min(100, Math.round(v))));
+
+        this.charts.individualPerformance.data.datasets = [{
+            label: employee.name,
+            data: weeklyData,
+            borderColor: '#8B45FF',
+            tension: 0.4
+        }];
+
+        this.charts.individualPerformance.update();
     }
 
     setupTeamManagementListeners() {
@@ -882,7 +1526,9 @@ class ProductivityBeastApp {
             dueDate: formData.get('dueDate'),
             progress: parseInt(formData.get('progress')) || 0,
             status: formData.get('status'),
-            createdDate: new Date().toISOString().split('T')[0]
+            createdDate: new Date().toISOString().split('T')[0],
+            assignedTo: [],
+            dailyProgress: []
         };
 
         // Validate required fields
@@ -893,7 +1539,6 @@ class ProductivityBeastApp {
 
         this.projects.push(newProject);
         this.saveToStorage();
-        this.syncProjectToGoogleSheets(newProject, 'create');
         this.renderProjects();
         this.closeModal('create-project-modal');
         form.reset();
@@ -944,7 +1589,6 @@ class ProductivityBeastApp {
 
         this.projects[projectIndex] = updatedProject;
         this.saveToStorage();
-        this.syncProjectToGoogleSheets(updatedProject, 'update');
         this.renderProjects();
         this.closeModal('create-project-modal');
         
@@ -964,17 +1608,10 @@ class ProductivityBeastApp {
         const projectIndex = this.projects.findIndex(p => p.id === projectId);
         if (projectIndex === -1) return;
 
-        const deletedProject = this.projects[projectIndex];
         this.projects.splice(projectIndex, 1);
         this.saveToStorage();
-        this.syncProjectToGoogleSheets(deletedProject, 'delete');
         this.renderProjects();
         this.showToast('Project deleted successfully!', 'success');
-    }
-
-    syncProjectToGoogleSheets(project, action) {
-        // In a real implementation, this would connect to Google Sheets API
-        console.log(`Syncing project to Google Sheets: ${action}`, project);
     }
 
     handleAuth(form) {
@@ -1010,7 +1647,6 @@ class ProductivityBeastApp {
     }
 
     handleSocialAuth() {
-        // In a real implementation, this would connect to OAuth providers
         this.currentUser = {
             email: 'demo@example.com',
             name: 'Demo User',
@@ -1112,7 +1748,10 @@ class ProductivityBeastApp {
             currentWorkload: formData.get('currentWorkload'),
             status: 'Active',
             joinDate: new Date().toISOString().split('T')[0],
-            lastActivity: new Date().toISOString().split('T')[0]
+            lastActivity: new Date().toISOString().split('T')[0],
+            productivity: 75 + Math.random() * 25,
+            tasksCompleted: Math.floor(Math.random() * 50) + 10,
+            projectsCompleted: Math.floor(Math.random() * 10) + 1
         };
 
         // Check for duplicate email
@@ -1123,7 +1762,6 @@ class ProductivityBeastApp {
 
         this.teamMembers.push(newMember);
         this.saveToStorage();
-        this.syncMemberToGoogleSheets(newMember, 'create');
         this.renderMembers();
         this.closeModal('add-member-modal');
         form.reset();
@@ -1140,18 +1778,11 @@ class ProductivityBeastApp {
         const memberIndex = this.teamMembers.findIndex(m => m.id === memberId);
         if (memberIndex === -1) return;
 
-        const removedMember = this.teamMembers[memberIndex];
         this.teamMembers.splice(memberIndex, 1);
         this.selectedMembers.delete(memberId);
         this.saveToStorage();
-        this.syncMemberToGoogleSheets(removedMember, 'delete');
         this.renderMembers();
         this.showToast('Team member removed successfully!', 'success');
-    }
-
-    syncMemberToGoogleSheets(member, action) {
-        // In a real implementation, this would connect to Google Sheets API
-        console.log(`Syncing member to Google Sheets: ${action}`, member);
     }
 
     generateInviteLink() {
@@ -1281,7 +1912,6 @@ class ProductivityBeastApp {
         
         // Sample preview data
         const previewContainer = document.querySelector('.preview-container');
-        const tableContainer = document.querySelector('.preview-table-container');
         const table = document.querySelector('.preview-table');
 
         if (previewContainer && table) {
@@ -1374,11 +2004,13 @@ class ProductivityBeastApp {
                 currentWorkload: memberData.currentWorkload || 'Medium',
                 status: 'Active',
                 joinDate: new Date().toISOString().split('T')[0],
-                lastActivity: new Date().toISOString().split('T')[0]
+                lastActivity: new Date().toISOString().split('T')[0],
+                productivity: 75 + Math.random() * 25,
+                tasksCompleted: Math.floor(Math.random() * 50) + 10,
+                projectsCompleted: Math.floor(Math.random() * 10) + 1
             };
 
             this.teamMembers.push(newMember);
-            this.syncMemberToGoogleSheets(newMember, 'create');
             importedCount++;
         });
 
