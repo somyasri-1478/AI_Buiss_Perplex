@@ -1585,35 +1585,48 @@ class ProductivityBeastApp {
             this.animateProgressBars();
         }
     }
+    
+// Modified createProject method
+async createProject(form) {
+    const formData = new FormData(form);
+    
+    const newProject = {
+        id: Math.max(...this.projects.map(p => p.id), 0) + 1,
+        name: formData.get('name'),
+        description: formData.get('description') || '',
+        dueDate: formData.get('dueDate'),
+        status: 'not-started',
+        skills: formData.get('skills').split(',').map(skill => skill.trim()),
+        createdDate: new Date().toISOString().split('T')[0],
+        assignedTo: [],
+        dailyProgress: []
+    };
 
-    createProject(form) {
-        const formData = new FormData(form);
+    if (!newProject.name || !newProject.dueDate) {
+        this.showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
+    try {
+        // Send to n8n webhook
+        const response = await fetch('https://abcd-004.app.n8n.cloud/webhook-test/1e40ea3a-cd73-46ae-ac2b-28dc6e1af803', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newProject)
+        });
+
+        if (!response.ok) throw new Error('Failed to send to n8n');
         
-        const newProject = {
-            id: Math.max(...this.projects.map(p => p.id), 0) + 1,
-            name: formData.get('name'),
-            description: formData.get('description') || '',
-            dueDate: formData.get('dueDate'),
-            progress: parseInt(formData.get('progress')) || 0,
-            status: formData.get('status'),
-            createdDate: new Date().toISOString().split('T')[0],
-            assignedTo: [],
-            dailyProgress: []
-        };
-
-        // Validate required fields
-        if (!newProject.name || !newProject.dueDate) {
-            this.showToast('Please fill in all required fields', 'error');
-            return;
-        }
-
         this.projects.push(newProject);
         this.saveToStorage();
         this.renderProjects();
         this.closeModal('create-project-modal');
         form.reset();
         this.showToast('Project created successfully!', 'success');
+    } catch (error) {
+        this.showToast('Error creating project: ' + error.message, 'error');
     }
+}
 
     editProject(projectId) {
         const project = this.projects.find(p => p.id === projectId);
