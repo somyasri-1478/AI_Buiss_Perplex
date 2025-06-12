@@ -298,23 +298,28 @@ class ProductivityBeastApp {
     // Enhanced method for animations including analytics
     setupAnimations() {
         // Add ripple effect to buttons
-        document.querySelectorAll('.btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const x = e.clientX - e.target.getBoundingClientRect().left;
-                const y = e.clientY - e.target.getBoundingClientRect().top;
-                
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple-effect');
-                ripple.style.left = `${x}px`;
-                ripple.style.top = `${y}px`;
-                
-                this.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
+        // Add this corrected tab handling code in setupAnimations()
+document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const tabs = document.querySelectorAll('.auth-tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update tab indicator position
+        const indicator = document.querySelector('.tab-indicator');
+        const tabRect = this.getBoundingClientRect();
+        const tabsRect = this.parentElement.getBoundingClientRect();
+        indicator.style.transform = `translateX(${tabRect.left - tabsRect.left}px)`;
+        indicator.style.width = `${tabRect.width}px`;
+
+        // Show correct form
+        const tabName = this.dataset.tab;
+        document.querySelectorAll('.auth-form').forEach(form => {
+            form.classList.remove('active');
         });
+        document.getElementById(`${tabName}-form`).classList.add('active');
+    });
+});
         
         // Add tab indicator animation for auth tabs
         const setTabIndicatorPosition = (tab) => {
