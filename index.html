@@ -564,29 +564,261 @@
                 </div>
             </section>
 
-            <!-- Settings Section -->
-            <section id="settings-section" class="content-section">
-                <div class="section-header">
-                    <p class="section-description">Configure your preferences</p>
-                </div>
-                <div class="placeholder-content">
-                    <i class="fas fa-cogs placeholder-icon"></i>
-                    <h3>Settings Panel</h3>
-                    <p>This section will contain application settings and preferences.</p>
-                </div>
-            </section>
+    <!-- Updated Settings Section -->
+    <section id="settings-section" class="content-section">
+        <div class="section-header">
+            <h2 class="gradient-text">Application Settings</h2>
+            <p class="section-description">Customize your Productivity Beast experience</p>
+        </div>
 
-            <!-- Help & Support Section -->
-            <section id="help-section" class="content-section">
-                <div class="section-header">
-                    <p class="section-description">Get assistance and documentation</p>
+        <div class="settings-grid">
+            <!-- Account Preferences -->
+            <div class="settings-card">
+                <h3><i class="fas fa-user-cog"></i> Account Preferences</h3>
+                <div class="form-group">
+                    <label class="form-label">Theme</label>
+                    <div class="theme-toggle">
+                        <button class="theme-btn light active" data-theme="light">Light</button>
+                        <button class="theme-btn dark" data-theme="dark">Dark</button>
+                    </div>
                 </div>
-                <div class="placeholder-content">
-                    <i class="fas fa-question-circle placeholder-icon"></i>
-                    <h3>Help Center</h3>
-                    <p>This section will contain help documentation and support resources.</p>
+                <div class="form-group">
+                    <label class="form-label">Time Zone</label>
+                    <select class="form-control" id="timezone">
+                        <option value="-12:00">(GMT-12:00) International Date Line West</option>
+                        <!-- Timezone options -->
+                    </select>
                 </div>
-            </section>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="settings-card">
+                <h3><i class="fas fa-shield-alt"></i> Security</h3>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="security-action">
+                        <button class="btn btn-outline" id="change-password">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Two-Factor Authentication</label>
+                    <div class="security-action">
+                        <label class="switch">
+                            <input type="checkbox" id="2fa-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="settings-card">
+                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                <div class="form-group">
+                    <label class="form-label">Email Notifications</label>
+                    <div class="notification-pref">
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Task Reminders
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" checked> Project Updates
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox"> Weekly Reports
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Settings -->
+            <div class="settings-card">
+                <h3><i class="fas fa-users"></i> Team Management</h3>
+                <div class="form-group">
+                    <label class="form-label">Default Member Role</label>
+                    <select class="form-control" id="default-role">
+                        <option value="member">Member</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Data Retention</label>
+                    <input type="number" class="form-control" value="365" min="30">
+                    <span class="input-suffix">days</span>
+                </div>
+            </div>
+
+            <!-- Integrations -->
+            <div class="settings-card">
+                <h3><i class="fas fa-plug"></i> Integrations</h3>
+                <div class="integrations-grid">
+                    <div class="integration-card">
+                        <img src="slack-icon.png" alt="Slack">
+                        <div class="integration-status">
+                            <label class="switch small">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- More integration cards -->
+                </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="settings-card">
+                <h3><i class="fas fa-database"></i> Data Management</h3>
+                <div class="data-actions">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-file-export"></i> Export Data
+                    </button>
+                    <button class="btn btn-outline">
+                        <i class="fas fa-trash"></i> Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Updated Help & Support Section -->
+    <section id="help-section" class="content-section">
+        <div class="section-header">
+            <h2 class="gradient-text">Help & Support</h2>
+            <p class="section-description">Get assistance and learn how to use Productivity Beast</p>
+        </div>
+
+        <div class="help-grid">
+            <!-- Documentation -->
+            <div class="help-card">
+                <div class="help-card-header">
+                    <i class="fas fa-book-open"></i>
+                    <h3>Documentation</h3>
+                </div>
+                <div class="help-card-body">
+                    <ul class="doc-links">
+                        <li><a href="#"><i class="fas fa-play"></i> Getting Started Guide</a></li>
+                        <li><a href="#"><i class="fas fa-tasks"></i> Feature Overview</a></li>
+                        <li><a href="#"><i class="fas fa-users"></i> Team Management Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contact Support -->
+            <div class="help-card">
+                <div class="help-card-header">
+                    <i class="fas fa-headset"></i>
+                    <h3>Contact Support</h3>
+                </div>
+                <div class="help-card-body">
+                    <form id="support-form">
+                        <div class="form-group">
+                            <label class="form-label">Subject</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-control" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-gradient">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Resources -->
+            <div class="help-card">
+                <div class="help-card-header">
+                    <i class="fas fa-life-ring"></i>
+                    <h3>Resources</h3>
+                </div>
+                <div class="help-card-body">
+                    <div class="resource-list">
+                        <div class="resource-item">
+                            <i class="fab fa-youtube"></i>
+                            <div>
+                                <h4>Video Tutorials</h4>
+                                <p>Watch step-by-step guides</p>
+                            </div>
+                        </div>
+                        <div class="resource-item">
+                            <i class="fas fa-comments"></i>
+                            <div>
+                                <h4>Community Forum</h4>
+                                <p>Connect with other users</p>
+                            </div>
+                        </div>
+                        <div class="resource-item">
+                            <i class="fas fa-file-alt"></i>
+                            <div>
+                                <h4>API Documentation</h4>
+                                <p>Developer resources</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="help-card">
+                <div class="help-card-header">
+                    <i class="fas fa-heartbeat"></i>
+                    <h3>System Status</h3>
+                </div>
+                <div class="help-card-body">
+                    <div class="status-indicator">
+                        <div class="status-dot operational"></div>
+                        <span>All Systems Operational</span>
+                    </div>
+                    <div class="incident-history">
+                        <div class="incident">
+                            <span class="status-dot resolved"></span>
+                            <div>
+                                <h4>API Latency Issues</h4>
+                                <p>Resolved 2 hours ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal -->
+            <div class="help-card">
+                <div class="help-card-header">
+                    <i class="fas fa-balance-scale"></i>
+                    <h3>Legal</h3>
+                </div>
+                <div class="help-card-body">
+                    <ul class="legal-links">
+                        <li><a href="#"><i class="fas fa-file-contract"></i> Terms of Service</a></li>
+                        <li><a href="#"><i class="fas fa-lock"></i> Privacy Policy</a></li>
+                        <li><a href="#"><i class="fas fa-cookie"></i> Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- About -->
+            <div class="help-card">
+                <div class="help-card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>About</h3>
+                </div>
+                <div class="help-card-body">
+                    <div class="about-content">
+                        <img src="logo.png" alt="Productivity Beast" class="about-logo">
+                        <p>Version 2.4.1</p>
+                        <p>© 2025 Productivity Beast. All rights reserved.</p>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
         </main>
     </div>
 
