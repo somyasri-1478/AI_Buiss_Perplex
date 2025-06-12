@@ -1210,6 +1210,41 @@ class ProductivityBeastApp {
                 this.renderProjects();
             }, 300));
         }
+        const createProjectForm = document.getElementById('create-project-form');
+        if (createProjectForm) {
+            createProjectForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                
+                // Send data to n8n webhook
+                try {
+                    const response = await fetch('https://abcd-004.app.n8n.cloud/webhook-test/1e40ea3a-cd73-46ae-ac2b-28dc6e1af803', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: formData.get('name'),
+                            description: formData.get('description'),
+                            dueDate: formData.get('dueDate'),
+                            skills: formData.get('skills').split(',').map(skill => skill.trim()),
+                            status: 'not-started' // Default status
+                        })
+                    });
+        
+                    if (!response.ok) throw new Error('Webhook failed');
+                    
+                    // Only create project locally if webhook succeeds
+                    this.createProject(formData);
+                    this.closeModal('create-project-modal');
+                    this.showToast('Project created and workflow triggered!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.showToast('Project creation failed. Please try again.', 'error');
+                }
+            });
+        }
 
         // Project status filter
         const projectStatusFilter = document.getElementById('project-status-filter');
@@ -1586,34 +1621,35 @@ class ProductivityBeastApp {
         }
     }
 
-    createProject(form) {
-        const formData = new FormData(form);
-        
-        const newProject = {
-            id: Math.max(...this.projects.map(p => p.id), 0) + 1,
-            name: formData.get('name'),
-            description: formData.get('description') || '',
-            dueDate: formData.get('dueDate'),
-            progress: parseInt(formData.get('progress')) || 0,
-            status: formData.get('status'),
-            createdDate: new Date().toISOString().split('T')[0],
-            assignedTo: [],
-            dailyProgress: []
-        };
+// Modified createProject() method:
+createProject(form) {
+    const formData = new FormData(form);
+    
+    const newProject = {
+        id: Math.max(...this.projects.map(p => p.id), 0) + 1,
+        name: formData.get('name'),
+        description: formData.get('description') || '',
+        dueDate: formData.get('dueDate'),
+        skills: formData.get('skills').split(',').map(skill => skill.trim()),
+        status: 'not-started', // Default status
+        progress: 0,
+        createdDate: new Date().toISOString().split('T')[0],
+        assignedTo: [],
+        dailyProgress: []
+    };
 
-        // Validate required fields
-        if (!newProject.name || !newProject.dueDate) {
-            this.showToast('Please fill in all required fields', 'error');
-            return;
-        }
-
-        this.projects.push(newProject);
-        this.saveToStorage();
-        this.renderProjects();
-        this.closeModal('create-project-modal');
-        form.reset();
-        this.showToast('Project created successfully!', 'success');
+    // Validate required fields
+    if (!newProject.name || !newProject.dueDate) {
+        this.showToast('Please fill in all required fields', 'error');
+        return;
     }
+
+    this.projects.push(newProject);
+    this.saveToStorage();
+    this.renderProjects();
+    this.closeModal('create-project-modal');
+    e.target.reset();
+}
 
     editProject(projectId) {
         const project = this.projects.find(p => p.id === projectId);
