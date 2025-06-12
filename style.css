@@ -450,6 +450,7 @@ p {
   padding: var(--space-8);
 }
 
+/* FIXED: Auth tabs styling to prevent clickability issues */
 .auth-tabs {
   display: flex;
   margin-bottom: var(--space-6);
@@ -457,6 +458,7 @@ p {
   background: rgba(var(--color-primary-rgb), 0.1);
   padding: var(--space-1);
   position: relative;
+  isolation: isolate; /* Create new stacking context */
 }
 
 .auth-tab {
@@ -469,8 +471,9 @@ p {
   cursor: pointer;
   transition: all var(--transition-normal) var(--ease-in-out);
   border-radius: var(--radius-full);
-  z-index: 2;
+  z-index: 10; /* Higher z-index to ensure clickability */
   position: relative;
+  pointer-events: auto; /* Ensure tabs are clickable */
 }
 
 .auth-tab.active {
@@ -486,7 +489,8 @@ p {
   background: var(--gradient-primary);
   border-radius: var(--radius-full);
   transition: transform var(--transition-normal) var(--ease-in-out);
-  z-index: 1;
+  z-index: 1; /* Lower z-index than tabs */
+  pointer-events: none; /* Prevent indicator from blocking clicks */
 }
 
 .auth-form {
@@ -494,6 +498,7 @@ p {
   transform: translateY(10px);
   transition: all var(--transition-normal) var(--ease-in-out);
   display: none;
+  pointer-events: none; /* Prevent hidden forms from blocking clicks */
 }
 
 .auth-form.active {
@@ -501,6 +506,7 @@ p {
   transform: translateY(0);
   display: block;
   animation: fadeIn 0.3s var(--ease-in-out);
+  pointer-events: auto; /* Re-enable pointer events for active form */
 }
 
 .auth-divider {
@@ -527,6 +533,7 @@ p {
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
 }
+
 
 /* Dashboard Layout */
 .dashboard-container {
