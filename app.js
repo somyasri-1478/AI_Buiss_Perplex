@@ -2283,6 +2283,106 @@ async createProject(form) {
             timeout = setTimeout(later, wait);
         };
     }
+    // Add this to the class methods
+async fetchProjectDetails(projectName) {
+    try {
+        const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?output=csv');
+        const csvData = await response.text();
+        
+        return new Promise((resolve) => {
+            Papa.parse(csvData, {
+                header: true,
+                complete: (results) => {
+                    const matchingRows = results.data.filter(row => 
+                        row['Project Name']?.trim().toLowerCase() === projectName.trim().toLowerCase()
+                    );
+                    resolve(matchingRows);
+                }
+            });
+        });
+    } catch (error) {
+        console.error('Error fetching project data:', error);
+        return [];
+    }
+}
+
+showProjectInfo(projectId) {
+    const project = this.projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    this.fetchProjectDetails(project.name).then(sheetData => {
+        const modalContent = document.getElementById('project-info-content');
+        modalContent.innerHTML = `
+            <div class="project-info-grid">
+                <div class="info-section">
+                    <h4>Basic Information</h4>
+                    <div class="info-item">
+                        <span class="info-label">Project Name:</span>
+                        <span class="info-value">${project.name}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value status status--${this.getStatusClass(project.status)}">
+                            ${this.formatStatus(project.status)}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Due Date:</span>
+                        <span class="info-value">${this.formatDate(project.dueDate)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Progress:</span>
+                        <span class="info-value">${project.progress}%</span>
+                    </div>
+                </div>
+                
+                ${sheetData.length > 0 ? `
+                <div class="info-section">
+                    <h4>Allotment Details</h4>
+                    ${Object.entries(sheetData[0]).map(([key, value]) => `
+                        <div class="info-item">
+                            <span class="info-label">${key}:</span>
+                            <span class="info-value">${value || 'N/A'}</span>
+                        </div>
+                    `).join('')}
+                </div>` : ''}
+            </div>
+
+            ${sheetData.length > 0 ? `
+            <div class="info-section">
+                <h4>Full Allocation Data</h4>
+                <table class="sheet-data-table">
+                    <thead>
+                        <tr>
+                            ${Object.keys(sheetData[0]).map(key => `
+                                <th>${key}</th>
+                            `).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sheetData.map(row => `
+                            <tr>
+                                ${Object.values(row).map(value => `
+                                    <td>${value || ''}</td>
+                                `).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>` : '<p class="text-secondary">No additional data found in sheet</p>'}
+        `;
+        
+        this.openModal('project-info-modal');
+    });
+}
+
+// Update the renderProjects method (change edit button to info button)
+project.actions = `
+    <button class="btn btn-sm btn-secondary" onclick="app.showProjectInfo(${project.id})">
+        <i class="fas fa-info-circle"></i> Info
+    </button>
+`;
+
 }
 
 // Initialize the application
