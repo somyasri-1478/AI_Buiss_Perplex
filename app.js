@@ -209,11 +209,23 @@ class ProductivityBeastApp {
                 "body": "Welcome to Productivity Beast!\n\nWe're excited to have you join our team. Please don't hesitate to reach out if you have any questions.\n\nBest regards,\nTeam Lead"
             }
         ];
+        // Settings defaults
+        this.settings = {
+            theme: 'light',
+            notifications: {
+                tasks: true,
+                projects: true,
+                reports: false
+            },
+            twoFactorAuth: false
+        };
         
         this.init();
     }
 
     init() {
+        this.loadSettings();
+        this.setupSettingsListeners();
         this.loadFromStorage();
         this.setupEventListeners();
         this.setupAnimations();
@@ -224,6 +236,64 @@ class ProductivityBeastApp {
             this.populateDropdowns();
         }, 100);
     }
+        setupSettingsListeners() {
+        // Theme toggle
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const theme = btn.dataset.theme;
+                this.setTheme(theme);
+            });
+        });
+
+        // 2FA toggle
+        document.getElementById('2fa-toggle').addEventListener('change', (e) => {
+            this.settings.twoFactorAuth = e.target.checked;
+            this.saveSettings();
+        });
+
+        // Support form
+        document.getElementById('support-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleSupportRequest(e.target);
+        });
+    }
+
+    setTheme(theme) {
+        this.settings.theme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        this.saveSettings();
+    }
+
+    handleSupportRequest(form) {
+        const formData = new FormData(form);
+        const request = {
+            subject: formData.get('subject'),
+            message: formData.get('message'),
+            timestamp: new Date().toISOString()
+        };
+
+        // Simulate API call
+        setTimeout(() => {
+            this.showToast('Support request submitted successfully!', 'success');
+            form.reset();
+        }, 1000);
+    }
+
+    loadSettings() {
+        const savedSettings = localStorage.getItem('pbSettings');
+        if (savedSettings) {
+            this.settings = JSON.parse(savedSettings);
+            document.documentElement.setAttribute('data-theme', this.settings.theme);
+            document.getElementById('2fa-toggle').checked = this.settings.twoFactorAuth;
+        }
+    }
+
+    saveSettings() {
+        localStorage.setItem('pbSettings', JSON.stringify(this.settings));
+    }
+
     
     // Enhanced method for animations including analytics
     setupAnimations() {
