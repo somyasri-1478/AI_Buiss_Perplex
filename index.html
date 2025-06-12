@@ -1015,48 +1015,39 @@
         </div>
     </div>
 
-    <!-- Create Project Modal -->
-    <div id="create-project-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Create New Project</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="create-project-form">
-                    <div class="form-group">
-                        <label class="form-label">Project Name</label>
-                        <input type="text" name="name" class="form-control" placeholder="Project Title" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" placeholder="Project description..." rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Due Date</label>
-                        <input type="date" name="dueDate" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-control" required>
-                            <option value="not-started">Not Started</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="complete">Complete</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Progress <span class="progress-value">0%</span></label>
-                        <input type="range" name="progress" class="form-control" min="0" max="100" value="0">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-outline cancel-btn">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Project</button>
-                    </div>
-                </form>
-            </div>
+<!-- Create Project Modal -->
+<div id="create-project-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create New Project</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="create-project-form">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="Project Title" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" placeholder="Project description..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" name="dueDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Required Skills (comma separated)</label>
+                    <input type="text" name="skills" class="form-control" placeholder="JavaScript, Project Management, Design" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline cancel-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </div>
+            </form>
         </div>
     </div>
-    
+</div>    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
