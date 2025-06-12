@@ -1940,5 +1940,60 @@ input:checked + .slider:before {
 .social-links a:hover {
     color: var(--color-primary);
 }
+/* Project Info Modal Styles */
+.project-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.info-section {
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+.info-section h4 {
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+    padding: var(--space-2);
+    background: var(--gradient-background);
+    border-radius: var(--radius-md);
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.info-value {
+    color: var(--color-text);
+    text-align: right;
+}
+
+.sheet-data-table {
+    width: 100%;
+    margin-top: var(--space-4);
+    border-collapse: collapse;
+}
+
+.sheet-data-table th,
+.sheet-data-table td {
+    padding: var(--space-2);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.sheet-data-table th {
+    background: var(--gradient-light);
+    color: var(--color-primary);
+}
+
 
 }
