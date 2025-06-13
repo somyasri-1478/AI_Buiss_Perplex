@@ -368,6 +368,383 @@ class ProductivityBeastApp {
         }
     }
 
+        // PROJECT STATUS CALCULATION
+    calculateProjectStatuses() {
+        return this.projects.map(project => {
+            const tasks = this.allotments.filter(t => t.Project_Name === project['Project Name']);
+            const completedTasks = tasks.filter(t => t.Task_Status === 'Completed').length;
+            
+            return {
+                ...project,
+                totalTasks: tasks.length,
+                completedTasks,
+                progress: tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0,
+                derivedStatus: tasks.length === 0 ? 'Not Started' : 
+                            completedTasks === tasks.length ? 'Completed' : 'In Progress'
+            };
+        });
+    }
+
+    // DAILY ACTIVITY DATA
+    getDailyActivityData() {
+        const activityMap = new Map();
+        
+        this.allotments.forEach(task => {
+            const startDate = new Date(task.Start_Date).toISOString().split('T')[0];
+            const endDate = new Date(task.End_Date).toISOString().split('T')[0];
+            
+            if (!activityMap.has(startDate)) activityMap.set(startDate, { started: 0, completed: 0 });
+            if (!activityMap.has(endDate)) activityMap.set(endDate, { started: 0, completed: 0 });
+            
+            activityMap.get(startDate).started++;
+            if (task.Task_Status === 'Completed') activityMap.get(endDate).completed++;
+        });
+
+        return Array.from(activityMap.entries())
+            .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+            .map(([date, counts]) => ({ date, ...counts }));
+    }
+
+    // CHART CREATION METHODS
+    createOverviewCharts() {
+        const productivityData = this.getDailyActivityData();
+        const projectStatusCounts = this.calculateProjectStatuses()
+            .reduce((acc, p) => {
+                acc[p.derivedStatus] = (acc[p.derivedStatus] || 0) + 1;
+                return acc;
+            }, {});
+
+        // Productivity Overview Chart
+        const productivityCtx = document.getElementById('productivity-overview-chart');
+        if (productivityCtx) {
+            this.charts.productivityOverview = new Chart(productivityCtx, {
+                type: 'line',
+                data: {
+                    labels: productivityData.map(d => new Date(d.date).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Tasks Completed',
+                        data: productivityData.map(d => d.completed),
+                        borderColor: '#8B45FF',
+                        backgroundColor: 'rgba(139, 69, 255, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: this.getChartOptions('Daily Completed Tasks')
+            });
+        }
+
+        // Team Performance Distribution
+        const teamPerformanceCtx = document.getElementById('team-performance-chart');
+        if (teamPerformanceCtx) {
+            const employeePerformance = this.teamMembers.map(member => {
+                const tasks = this.allotments.filter(t => t.Assigned_Employee === member.name);
+                return tasks.length > 0 ? 
+                    (tasks.filter(t => t.Task_Status === 'Completed').length / tasks.length) * 100 : 0;
+            });
+            
+            const performanceLevels = {
+                high: employeePerformance.filter(p => p >= 80).length,
+                medium: employeePerformance.filter(p => p >= 50 && p < 80).length,
+                low: employeePerformance.filter(p => p < 50).length
+            };
+
+            this.charts.teamPerformance = new Chart(teamPerformanceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High Performers (≥80%)', 'Medium Performers (50-79%)', 'Low Performers (<50%)'],
+                    datasets: [{
+                        data: [performanceLevels.high, performanceLevels.medium, performanceLevels.low],
+                        backgroundColor: ['#48BB78', '#ED8936', '#F56565']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    }
+
+    createProjectsCharts() {
+        const projects = this.calculateProjectStatuses();
+        
+        // Project Status Overview
+        const statusCtx = document.getElementById('project-status-chart');
+        if (statusCtx) {
+            const statusCounts = projects.reduce((acc, p) => {
+                acc[p.derivedStatus] = (acc[p.derivedStatus] || 0) + 1;
+                return acc;
+            }, {});
+
+            this.charts.projectStatus = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#F56565', '#ED8936', '#48BB78']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // Project Timeline & Deadlines
+        const timelineCtx = document.getElementById('project-timeline-chart');
+        if (timelineCtx) {
+            const sortedProjects = projects.sort((a, b) => 
+                new Date(a['Due Date']) - new Date(b['Due Date']));
+            
+            this.charts.projectTimeline = new Chart(timelineCtx, {
+                type: 'bar',
+                data: {
+                    labels: sortedProjects.map(p => p['Project Name']),
+                    datasets: [{
+                        label: 'Progress',
+                        data: sortedProjects.map(p => p.progress),
+                        backgroundColor: sortedProjects.map(p => 
+                            p.derivedStatus === 'Completed' ? '#48BB78' :
+                            p.derivedStatus === 'In Progress' ? '#ED8936' : '#F56565')
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: { x: { max: 100 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    }
+
+    createEmployeeCharts() {
+        // Employee Productivity Score
+        const productivityCtx = document.getElementById('employee-productivity-chart');
+        if (productivityCtx) {
+            const employeeData = this.teamMembers.map(member => {
+                const tasks = this.allotments.filter(t => t.Assigned_Employee === member.name);
+                return {
+                    name: member.name,
+                    productivity: tasks.length > 0 ? 
+                        (tasks.filter(t => t.Task_Status === 'Completed').length / tasks.length) * 100 : 0
+                };
+            });
+
+            this.charts.employeeProductivity = new Chart(productivityCtx, {
+                type: 'bar',
+                data: {
+                    labels: employeeData.map(d => d.name),
+                    datasets: [{
+                        label: 'Productivity Score',
+                        data: employeeData.map(d => d.productivity),
+                        backgroundColor: 'rgba(139, 69, 255, 0.8)'
+                    }]
+                },
+                options: this.getChartOptions('Productivity Score (%)')
+            });
+        }
+    }
+
+    // NEW CHART METHODS
+    createDailyActivityChart() {
+        const activityData = this.getDailyActivityData();
+        const ctx = document.getElementById('daily-trends-chart');
+        
+        if (ctx) {
+            this.charts.dailyTrends = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: activityData.map(d => new Date(d.date).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Tasks Started',
+                        data: activityData.map(d => d.started),
+                        backgroundColor: '#8B45FF'
+                    }, {
+                        label: 'Tasks Completed',
+                        data: activityData.map(d => d.completed),
+                        backgroundColor: '#63B3FF'
+                    }]
+                },
+                options: this.getChartOptions('Daily Activity Trends')
+            });
+        }
+    }
+
+    createProjectCompletionChart() {
+        const projects = this.calculateProjectStatuses();
+        const ctx = document.getElementById('project-completion-chart');
+        
+        if (ctx) {
+            this.charts.projectCompletion = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: projects.map(p => p['Project Name']),
+                    datasets: [{
+                        label: 'Completion Rate',
+                        data: projects.map(p => p.progress),
+                        borderColor: '#48BB78',
+                        backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: this.getChartOptions('Project Completion Rate (%)')
+            });
+        }
+    }
+
+    createDailyProjectProgressChart() {
+        const projects = this.calculateProjectStatuses().filter(p => p.derivedStatus === 'In Progress');
+        const ctx = document.getElementById('project-progress-chart');
+        
+        if (ctx) {
+            this.charts.projectProgress = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => `Day ${i+1}`),
+                    datasets: projects.map(project => ({
+                        label: project['Project Name'],
+                        data: this.generateProjectProgressData(project),
+                        borderColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+                        tension: 0.4
+                    }))
+                },
+                options: this.getChartOptions('Daily Project Progress')
+            });
+        }
+    }
+
+    createDepartmentPerformanceChart() {
+        const deptData = this.departments.map(dept => {
+            const members = this.teamMembers.filter(m => m.department === dept);
+            const tasks = this.allotments.filter(t => 
+                members.some(m => m.name === t.Assigned_Employee));
+            
+            return {
+                department: dept,
+                completionRate: tasks.length ? 
+                    (tasks.filter(t => t.Task_Status === 'Completed').length / tasks.length) * 100 : 0,
+                avgHours: tasks.length ? 
+                    tasks.reduce((sum, t) => sum + Number(t.Estimated_Hours), 0) / tasks.length : 0
+            };
+        });
+
+        const ctx = document.getElementById('department-performance-chart');
+        if (ctx) {
+            this.charts.departmentPerformance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Completion Rate', 'Average Hours', 'On-time Delivery', 'Contribution'],
+                    datasets: [{
+                        label: 'Department Performance',
+                        data: deptData.map(d => [
+                            d.completionRate,
+                            d.avgHours,
+                            Math.random() * 100, // Simulated on-time delivery
+                            Math.random() * 100  // Simulated contribution
+                        ]),
+                        backgroundColor: 'rgba(99, 179, 255, 0.2)',
+                        borderColor: '#63B3FF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { r: { beginAtZero: true } }
+                }
+            });
+        }
+    }
+
+    createIndividualPerformanceChart() {
+        const ctx = document.getElementById('individual-performance-chart');
+        if (ctx) {
+            this.charts.individualPerformance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: []
+                },
+                options: this.getChartOptions('Individual Performance')
+            });
+            
+            document.getElementById('individual-employee-filter').addEventListener('change', (e) => {
+                const member = this.teamMembers.find(m => m.id == e.target.value);
+                if (member) this.updateIndividualChart(member);
+            });
+        }
+    }
+
+    createOverallMetricsChart() {
+        const ctx = document.getElementById('performance-metrics-chart');
+        if (ctx) {
+            this.charts.performanceMetrics = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Quality', 'Speed', 'Collaboration', 'Workload', 'Skills'],
+                    datasets: [{
+                        label: 'Overall Metrics',
+                        data: [80, 75, 85, 90, 78],
+                        backgroundColor: 'rgba(139, 69, 255, 0.2)',
+                        borderColor: '#8B45FF'
+                    }]
+                },
+                options: {
+                    scales: { r: { beginAtZero: true } }
+                }
+            });
+        }
+    }
+
+    createGoalAchievementChart() {
+        const projects = this.calculateProjectStatuses();
+        const ctx = document.getElementById('goal-achievement-chart');
+        
+        if (ctx) {
+            const counts = {
+                Achieved: projects.filter(p => p.derivedStatus === 'Completed').length,
+                'In Progress': projects.filter(p => p.derivedStatus === 'In Progress').length,
+                Pending: projects.filter(p => p.derivedStatus === 'Not Started').length
+            };
+
+            this.charts.goalAchievement = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(counts),
+                    datasets: [{
+                        data: Object.values(counts),
+                        backgroundColor: ['#48BB78', '#ED8936', '#F56565']
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    }
+
+    createPerformanceTrendsChart() {
+        const ctx = document.getElementById('performance-trends-chart');
+        if (ctx) {
+            this.charts.performanceTrends = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Team Productivity',
+                        data: [75, 82, 88, 85, 90, 92],
+                        borderColor: '#8B45FF'
+                    }, {
+                        label: 'Project Completion',
+                        data: [60, 70, 75, 85, 88, 95],
+                        borderColor: '#63B3FF'
+                    }]
+                },
+                options: this.getChartOptions('Performance Trends')
+            });
+        }
+    }
+
     // Updated getFilteredProjects method
     getFilteredProjects() {
         return this.projects.filter(project => {
@@ -2367,6 +2744,66 @@ class ProductivityBeastApp {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    }
+       // HELPER METHODS
+    getChartOptions(title) {
+        return {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: title } }
+            },
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: title }
+            }
+        };
+    }
+
+    generateProjectProgressData(project) {
+        const tasks = this.allotments.filter(t => t.Project_Name === project['Project Name']);
+        return Array.from({length: 30}, (_, i) => 
+            Math.min(100, Math.round((i / 30) * project.progress)));
+    }
+
+    updateIndividualChart(member) {
+        const chart = this.charts.individualPerformance;
+        const tasks = this.allotments.filter(t => t.Assigned_Employee === member.name);
+        
+        chart.data.datasets = [{
+            label: member.name,
+            data: [Math.random() * 100, Math.random() * 100, Math.random() * 100, member.productivity],
+            borderColor: '#8B45FF',
+            tension: 0.4
+        }];
+        chart.update();
+    }
+
+    // UPDATED ANALYTICS INITIALIZATION
+    initializeAnalyticsCharts(tabName) {
+        Object.values(this.charts).forEach(chart => chart?.destroy());
+        this.charts = {};
+
+        switch(tabName) {
+            case 'overview':
+                this.createOverviewCharts();
+                this.createDailyActivityChart();
+                break;
+            case 'projects':
+                this.createProjectsCharts();
+                this.createProjectCompletionChart();
+                this.createDailyProjectProgressChart();
+                break;
+            case 'employees':
+                this.createEmployeeCharts();
+                this.createDepartmentPerformanceChart();
+                this.createIndividualPerformanceChart();
+                break;
+            case 'performance':
+                this.createOverallMetricsChart();
+                this.createGoalAchievementChart();
+                this.createPerformanceTrendsChart();
+                break;
+        }
     }
 }
 
