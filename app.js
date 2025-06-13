@@ -1550,7 +1550,7 @@ class ProductivityBeastApp {
     async showProjectInfo(projectName) {
         try {
             if (this.projectAllotments.length === 0) {
-                const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?gid=0&single=true&output=csv');
+                const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?gid=1832534408&single=true&output=csv');
                 const csvData = await response.text();
                 this.projectAllotments = this.parseCSV(csvData);
             }
