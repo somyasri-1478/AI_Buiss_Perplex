@@ -6,15 +6,15 @@ class ProductivityBeastApp {
         this.currentView = 'grid';
         this.selectedMembers = new Set();
         this.searchTerm = '';
-        this.projectAllotments = [];
         this.filters = {
             department: '',
             experience: '',
             status: ''
         };
         
-        // Project management state
+        // Project management state - Updated to load from Google Sheets
         this.projects = [];
+        this.allotments = [];
         this.projectSearchTerm = '';
         this.projectFilters = {
             status: ''
@@ -28,7 +28,7 @@ class ProductivityBeastApp {
         this.rawImportData = null;
         this.processedImportData = null;
         
-        // Sample data for team members
+        // Sample data for team members (keeping existing team data)
         this.teamMembers = [
             {
                 "id": 1,
@@ -122,75 +122,6 @@ class ProductivityBeastApp {
             }
         ];
 
-        // Sample projects data with daily progress
-        this.projects = [
-            {
-                "id": 1,
-                "name": "Website Redesign",
-                "description": "Complete overhaul of company website with modern design and improved UX",
-                "dueDate": "2025-07-15",
-                "progress": 100,
-                "status": "complete",
-                "createdDate": "2025-05-01",
-                "assignedTo": ["Sarah Johnson", "Emily Rodriguez"],
-                "dailyProgress": [
-                    { date: "2025-06-01", progress: 85 },
-                    { date: "2025-06-02", progress: 88 },
-                    { date: "2025-06-03", progress: 92 },
-                    { date: "2025-06-04", progress: 95 },
-                    { date: "2025-06-05", progress: 98 },
-                    { date: "2025-06-06", progress: 100 }
-                ]
-            },
-            {
-                "id": 2,
-                "name": "Mobile App Development",
-                "description": "Development of iOS and Android mobile application for customer portal",
-                "dueDate": "2025-08-30",
-                "progress": 65,
-                "status": "in-progress",
-                "createdDate": "2025-04-15",
-                "assignedTo": ["Sarah Johnson", "David Kim"],
-                "dailyProgress": [
-                    { date: "2025-06-01", progress: 50 },
-                    { date: "2025-06-02", progress: 52 },
-                    { date: "2025-06-03", progress: 55 },
-                    { date: "2025-06-04", progress: 58 },
-                    { date: "2025-06-05", progress: 62 },
-                    { date: "2025-06-06", progress: 65 }
-                ]
-            },
-            {
-                "id": 3,
-                "name": "Database Migration",
-                "description": "Migration from legacy database system to cloud-based solution",
-                "dueDate": "2025-09-15",
-                "progress": 30,
-                "status": "in-progress",
-                "createdDate": "2025-06-01",
-                "assignedTo": ["David Kim"],
-                "dailyProgress": [
-                    { date: "2025-06-01", progress: 10 },
-                    { date: "2025-06-02", progress: 15 },
-                    { date: "2025-06-03", progress: 20 },
-                    { date: "2025-06-04", progress: 25 },
-                    { date: "2025-06-05", progress: 28 },
-                    { date: "2025-06-06", progress: 30 }
-                ]
-            },
-            {
-                "id": 4,
-                "name": "AI Integration Research",
-                "description": "Research and planning for AI features integration into existing products",
-                "dueDate": "2025-10-01",
-                "progress": 0,
-                "status": "not-started",
-                "createdDate": "2025-06-10",
-                "assignedTo": [],
-                "dailyProgress": []
-            }
-        ];
-
         this.departments = ["Engineering", "Marketing", "Sales", "HR", "Design"];
         this.experienceLevels = ["Junior", "Mid", "Senior", "Lead"];
         this.messageTemplates = [
@@ -210,6 +141,7 @@ class ProductivityBeastApp {
                 "body": "Welcome to Productivity Beast!\n\nWe're excited to have you join our team. Please don't hesitate to reach out if you have any questions.\n\nBest regards,\nTeam Lead"
             }
         ];
+
         // Settings defaults
         this.settings = {
             theme: 'light',
@@ -224,7 +156,10 @@ class ProductivityBeastApp {
         this.init();
     }
 
-    init() {
+    // Updated init method to load Google Sheets data
+    async init() {
+        await this.loadProjectsData();
+        await this.loadAllotmentsData();
         this.loadSettings();
         this.setupSettingsListeners();
         this.loadFromStorage();
@@ -237,7 +172,338 @@ class ProductivityBeastApp {
             this.populateDropdowns();
         }, 100);
     }
-        setupSettingsListeners() {
+
+    // New method to load projects from Google Sheets
+    async loadProjectsData() {
+        try {
+            const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?gid=0&single=true&output=csv');
+            const csvData = await response.text();
+            this.projects = this.parseProjectsCSV(csvData);
+        } catch (error) {
+            console.error('Error loading projects:', error);
+            this.showToast('Error loading projects from Google Sheets', 'error');
+        }
+    }
+
+    // New method to load allotments from Google Sheets
+    async loadAllotmentsData() {
+        try {
+            const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?gid=1832534408&single=true&output=csv');
+            const csvData = await response.text();
+            this.allotments = this.parseAllotmentsCSV(csvData);
+        } catch (error) {
+            console.error('Error loading allotments:', error);
+            this.showToast('Error loading allotments from Google Sheets', 'error');
+        }
+    }
+
+    // Updated CSV parsing method for projects
+    parseProjectsCSV(csv) {
+        const rows = csv.split('\n').slice(1); // Remove header
+        return rows.filter(row => row.trim()).map(row => {
+            const columns = this.parseCSVRow(row);
+            return {
+                'Project Name': columns[0]?.trim() || '',
+                'Description': columns[1]?.trim() || '',
+                'Due Date': columns[2]?.trim() || '',
+                'Required Skills': columns[3]?.trim() || '',
+                'Status': columns[4]?.trim() || 'not-started'
+            };
+        });
+    }
+
+    // New CSV parsing method for allotments
+    parseAllotmentsCSV(csv) {
+        const rows = csv.split('\n').slice(1); // Remove header
+        return rows.filter(row => row.trim()).map(row => {
+            const columns = this.parseCSVRow(row);
+            return {
+                'Task_ID': columns[0]?.trim() || '',
+                'Project_Name': columns[1]?.trim() || '',
+                'Task_Phase': columns[2]?.trim() || '',
+                'Subtask_Description': columns[3]?.trim() || '',
+                'Assigned_Employee': columns[4]?.trim() || '',
+                'Start_Date': columns[5]?.trim() || '',
+                'End_Date': columns[6]?.trim() || '',
+                'Estimated_Hours': columns[7]?.trim() || '',
+                'Task_Status': columns[8]?.trim() || '',
+                'Priority': columns[9]?.trim() || '',
+                'Created_Date': columns[10]?.trim() || '',
+                'Notes': columns[11]?.trim() || ''
+            };
+        });
+    }
+
+    // Helper method to properly parse CSV rows with commas in quotes
+    parseCSVRow(row) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < row.length; i++) {
+            const char = row[i];
+            
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        
+        result.push(current);
+        return result;
+    }
+
+    // Updated renderProjects method to use Google Sheets data
+    renderProjects() {
+        const container = document.getElementById('projects-container');
+        if (!container) return;
+
+        const filteredProjects = this.getFilteredProjects();
+
+        if (filteredProjects.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-project-diagram"></i>
+                    <h3>No projects found</h3>
+                    <p>No projects match your current search criteria or no projects loaded from Google Sheets.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filteredProjects.map(project => `
+            <div class="project-card status-${project.Status.toLowerCase().replace(' ', '-')}">
+                <div class="project-header">
+                    <h4 class="project-title">${this.highlightSearchTerm(project['Project Name'])}</h4>
+                    <span class="project-status status status--${this.getStatusClass(project.Status)}">${project.Status}</span>
+                </div>
+                <div class="project-description">
+                    <p>${this.highlightSearchTerm(project.Description)}</p>
+                </div>
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <label>Due Date:</label>
+                        <span>${this.formatDate(project['Due Date'])}</span>
+                    </div>
+                    <div class="meta-item">
+                        <label>Skills Required:</label>
+                        <div class="skills-list">
+                            ${project['Required Skills'].split(',').map(skill => 
+                                `<span class="skill-tag">${skill.trim()}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div class="project-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="app.showProjectInfo('${project['Project Name']}')">
+                        <i class="fas fa-info-circle"></i> Info
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="app.deleteProjectFromSheet('${project['Project Name']}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Updated showProjectInfo method
+    async showProjectInfo(projectName) {
+        const modalContent = document.getElementById('project-info-content');
+        modalContent.innerHTML = `
+            <div class="project-info-loading">
+                <div class="loading-spinner"></div>
+                <p>Loading project details...</p>
+            </div>
+        `;
+        this.openModal('project-info-modal');
+
+        try {
+            const project = this.projects.find(p => p['Project Name'] === projectName);
+            if (!project) {
+                throw new Error('Project not found');
+            }
+
+            const tasks = this.allotments.filter(t => t.Project_Name === projectName);
+
+            const htmlContent = `
+                <div class="project-details">
+                    <div class="detail-section">
+                        <h4>${project['Project Name']}</h4>
+                        <p class="project-description">${project.Description}</p>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Due Date:</label>
+                                <span>${this.formatDate(project['Due Date'])}</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Status:</label>
+                                <span class="status-badge status--${this.getStatusClass(project.Status)}">${project.Status}</span>
+                            </div>
+                            <div class="detail-item full-width">
+                                <label>Required Skills:</label>
+                                <div class="skills-list">
+                                    ${project['Required Skills'].split(',').map(skill => `
+                                        <span class="skill-tag">${skill.trim()}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="task-section">
+                        <h4>Project Tasks & Allotments</h4>
+                        ${tasks.length > 0 ? `
+                            <div class="task-grid">
+                                ${tasks.map(task => `
+                                    <div class="task-card">
+                                        <div class="task-header">
+                                            <span class="task-phase">${task.Task_Phase}</span>
+                                            <span class="priority-tag priority-${task.Priority.toLowerCase()}">${task.Priority}</span>
+                                        </div>
+                                        <p class="task-description">${task.Subtask_Description}</p>
+                                        <div class="task-meta">
+                                            <div class="meta-item">
+                                                <label>Task ID:</label>
+                                                <span>${task.Task_ID}</span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <label>Assigned To:</label>
+                                                <span>${task.Assigned_Employee}</span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <label>Timeline:</label>
+                                                <span>${task.Start_Date} - ${task.End_Date}</span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <label>Estimated Hours:</label>
+                                                <span>${task.Estimated_Hours}h</span>
+                                            </div>
+                                            <div class="meta-item">
+                                                <label>Status:</label>
+                                                <span class="status-dot status-${task.Task_Status.toLowerCase().replace(' ', '-')}"></span>
+                                                ${task.Task_Status}
+                                            </div>
+                                            ${task.Notes ? `
+                                                <div class="meta-item full-width">
+                                                    <label>Notes:</label>
+                                                    <p>${task.Notes}</p>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p class="no-tasks">No tasks assigned to this project yet.</p>'}
+                    </div>
+                </div>
+            `;
+
+            modalContent.innerHTML = htmlContent;
+        } catch (error) {
+            modalContent.innerHTML = `<p class="error-message">Error loading project details: ${error.message}</p>`;
+        }
+    }
+
+    // Updated getFilteredProjects method
+    getFilteredProjects() {
+        return this.projects.filter(project => {
+            // Search filter
+            const searchMatch = !this.projectSearchTerm || 
+                project['Project Name'].toLowerCase().includes(this.projectSearchTerm.toLowerCase()) ||
+                project.Description.toLowerCase().includes(this.projectSearchTerm.toLowerCase()) ||
+                project['Required Skills'].toLowerCase().includes(this.projectSearchTerm.toLowerCase());
+
+            // Status filter
+            const statusMatch = !this.projectFilters.status || 
+                project.Status.toLowerCase().replace(' ', '-') === this.projectFilters.status;
+
+            return searchMatch && statusMatch;
+        });
+    }
+
+    // New method to handle project deletion
+    deleteProjectFromSheet(projectName) {
+        if (!confirm(`Are you sure you want to delete the project "${projectName}"? This will only remove it from the local view. To permanently delete, edit your Google Sheet.`)) {
+            return;
+        }
+
+        const projectIndex = this.projects.findIndex(p => p['Project Name'] === projectName);
+        if (projectIndex === -1) return;
+
+        this.projects.splice(projectIndex, 1);
+        this.renderProjects();
+        this.showToast('Project removed from view. Edit your Google Sheet to permanently delete.', 'warning');
+    }
+
+    // Updated createProject method to work with n8n webhook
+    async createProject(form) {
+        const formData = new FormData(form);
+        
+        const newProject = {
+            name: formData.get('name'),
+            description: formData.get('description') || '',
+            dueDate: formData.get('dueDate'),
+            skills: formData.get('skills') || '',
+            status: 'not-started',
+            createdDate: new Date().toISOString().split('T')[0]
+        };
+
+        // Validate required fields
+        if (!newProject.name || !newProject.dueDate || !newProject.skills) {
+            this.showToast('Please fill in all required fields', 'error');
+            return;
+        }
+
+        try {
+            // Send to n8n webhook
+            const response = await fetch('https://abcd-004.app.n8n.cloud/webhook-test/1e40ea3a-cd73-46ae-ac2b-28dc6e1af803', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newProject)
+            });
+
+            if (!response.ok) throw new Error('Failed to send to n8n');
+            
+            // Add to local projects array
+            const projectForLocal = {
+                'Project Name': newProject.name,
+                'Description': newProject.description,
+                'Due Date': newProject.dueDate,
+                'Required Skills': newProject.skills,
+                'Status': newProject.status
+            };
+            
+            this.projects.push(projectForLocal);
+            this.renderProjects();
+            this.closeModal('create-project-modal');
+            form.reset();
+            this.showToast('Project created successfully and sent to workflow!', 'success');
+        } catch (error) {
+            console.error('Error creating project:', error);
+            this.showToast('Error creating project: ' + error.message, 'error');
+        }
+    }
+
+    // Helper method to get status class
+    getStatusClass(status) {
+        const statusMap = {
+            'complete': 'success',
+            'completed': 'success',
+            'in-progress': 'warning',
+            'in progress': 'warning',
+            'not-started': 'error',
+            'not started': 'error',
+            'pending': 'warning'
+        };
+        return statusMap[status.toLowerCase()] || 'info';
+    }
+
+    // Settings methods
+    setupSettingsListeners() {
         // Theme toggle
         document.querySelectorAll('.theme-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -249,16 +515,22 @@ class ProductivityBeastApp {
         });
 
         // 2FA toggle
-        document.getElementById('2fa-toggle').addEventListener('change', (e) => {
-            this.settings.twoFactorAuth = e.target.checked;
-            this.saveSettings();
-        });
+        const twoFAToggle = document.getElementById('2fa-toggle');
+        if (twoFAToggle) {
+            twoFAToggle.addEventListener('change', (e) => {
+                this.settings.twoFactorAuth = e.target.checked;
+                this.saveSettings();
+            });
+        }
 
         // Support form
-        document.getElementById('support-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleSupportRequest(e.target);
-        });
+        const supportForm = document.getElementById('support-form');
+        if (supportForm) {
+            supportForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleSupportRequest(e.target);
+            });
+        }
     }
 
     setTheme(theme) {
@@ -287,7 +559,10 @@ class ProductivityBeastApp {
         if (savedSettings) {
             this.settings = JSON.parse(savedSettings);
             document.documentElement.setAttribute('data-theme', this.settings.theme);
-            document.getElementById('2fa-toggle').checked = this.settings.twoFactorAuth;
+            const twoFAToggle = document.getElementById('2fa-toggle');
+            if (twoFAToggle) {
+                twoFAToggle.checked = this.settings.twoFactorAuth;
+            }
         }
     }
 
@@ -295,7 +570,6 @@ class ProductivityBeastApp {
         localStorage.setItem('pbSettings', JSON.stringify(this.settings));
     }
 
-    
     // Enhanced method for animations including analytics
     setupAnimations() {
         // Add ripple effect to buttons
@@ -648,25 +922,22 @@ class ProductivityBeastApp {
             });
         }
 
-        // Project Status Overview
+        // Project Status Overview using Google Sheets data
         const projectStatusCtx = document.getElementById('project-status-chart');
         if (projectStatusCtx) {
             const statusCounts = this.projects.reduce((acc, project) => {
-                acc[project.status] = (acc[project.status] || 0) + 1;
+                const status = project.Status.toLowerCase();
+                acc[status] = (acc[status] || 0) + 1;
                 return acc;
             }, {});
 
             this.charts.projectStatus = new Chart(projectStatusCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Complete', 'In Progress', 'Not Started'],
+                    labels: Object.keys(statusCounts).map(status => status.charAt(0).toUpperCase() + status.slice(1)),
                     datasets: [{
-                        data: [
-                            statusCounts.complete || 0,
-                            statusCounts['in-progress'] || 0,
-                            statusCounts['not-started'] || 0
-                        ],
-                        backgroundColor: ['#48BB78', '#ED8936', '#F56565']
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#48BB78', '#ED8936', '#F56565', '#63B3FF']
                     }]
                 },
                 options: {
@@ -681,19 +952,20 @@ class ProductivityBeastApp {
             });
         }
 
-        // Project Timeline
+        // Project Timeline using Google Sheets data
         const timelineCtx = document.getElementById('project-timeline-chart');
         if (timelineCtx) {
             this.charts.projectTimeline = new Chart(timelineCtx, {
                 type: 'bar',
                 data: {
-                    labels: this.projects.map(p => p.name),
+                    labels: this.projects.map(p => p['Project Name']).slice(0, 10), // Limit to 10 projects
                     datasets: [{
-                        label: 'Progress %',
-                        data: this.projects.map(p => p.progress),
-                        backgroundColor: this.projects.map(p => {
-                            if (p.status === 'complete') return '#48BB78';
-                            if (p.status === 'in-progress') return '#ED8936';
+                        label: 'Projects by Status',
+                        data: this.projects.slice(0, 10).map(() => 1), // Each project counts as 1
+                        backgroundColor: this.projects.slice(0, 10).map(p => {
+                            const status = p.Status.toLowerCase();
+                            if (status.includes('complete')) return '#48BB78';
+                            if (status.includes('progress')) return '#ED8936';
                             return '#F56565';
                         })
                     }]
@@ -705,30 +977,33 @@ class ProductivityBeastApp {
                     scales: {
                         x: {
                             beginAtZero: true,
-                            max: 100
+                            max: 1
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
                         }
                     }
                 }
             });
         }
 
-        // Daily Project Progress
+        // Daily Project Progress using synthetic data for demo
         const projectProgressCtx = document.getElementById('project-progress-chart');
         if (projectProgressCtx) {
-            const datasets = this.projects.filter(p => p.dailyProgress.length > 0).map((project, index) => ({
-                label: project.name,
-                data: project.dailyProgress.map(dp => dp.progress),
-                borderColor: ['#8B45FF', '#63B3FF', '#48BB78', '#ED8936'][index % 4],
-                backgroundColor: ['rgba(139, 69, 255, 0.1)', 'rgba(99, 179, 255, 0.1)', 'rgba(72, 187, 120, 0.1)', 'rgba(237, 137, 54, 0.1)'][index % 4],
-                tension: 0.4,
-                fill: false
-            }));
-
             this.charts.projectProgress = new Chart(projectProgressCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Jun 1', 'Jun 2', 'Jun 3', 'Jun 4', 'Jun 5', 'Jun 6'],
-                    datasets: datasets
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: this.projects.slice(0, 3).map((project, index) => ({
+                        label: project['Project Name'],
+                        data: [20 + index * 10, 35 + index * 15, 50 + index * 12, 65 + index * 8, 80 + index * 5],
+                        borderColor: ['#8B45FF', '#63B3FF', '#48BB78'][index],
+                        backgroundColor: ['rgba(139, 69, 255, 0.1)', 'rgba(99, 179, 255, 0.1)', 'rgba(72, 187, 120, 0.1)'][index],
+                        tension: 0.4,
+                        fill: false
+                    }))
                 },
                 options: {
                     responsive: true,
@@ -963,14 +1238,14 @@ class ProductivityBeastApp {
         }
     }
 
-    // Continue with remaining methods
+    // Continue with existing methods
     loadFromStorage() {
         const stored = localStorage.getItem('productivityBeastData');
         if (stored) {
             try {
                 const data = JSON.parse(stored);
+                // Only load team members from storage, projects come from Google Sheets
                 this.teamMembers = data.teamMembers || this.teamMembers;
-                this.projects = data.projects || this.projects;
                 this.currentUser = data.currentUser || null;
             } catch (e) {
                 console.warn('Failed to load data from storage:', e);
@@ -982,8 +1257,8 @@ class ProductivityBeastApp {
         try {
             const data = {
                 teamMembers: this.teamMembers,
-                projects: this.projects,
                 currentUser: this.currentUser
+                // Don't save projects as they come from Google Sheets
             };
             localStorage.setItem('productivityBeastData', JSON.stringify(data));
         } catch (e) {
@@ -1238,17 +1513,9 @@ class ProductivityBeastApp {
                 this.createProject(e.target);
             });
         }
-
-        // Progress slider in create project modal
-        const progressSlider = document.querySelector('#create-project-form input[name="progress"]');
-        const progressOutput = document.querySelector('#create-project-form .progress-value');
-        if (progressSlider && progressOutput) {
-            progressSlider.addEventListener('input', (e) => {
-                progressOutput.textContent = `${e.target.value}%`;
-            });
-        }
     }
 
+    // Continue with remaining methods (setupBulkImportListeners, etc.)
     setupBulkImportListeners() {
         // File format selection
         document.querySelectorAll('.file-format-btn').forEach(btn => {
@@ -1507,215 +1774,6 @@ class ProductivityBeastApp {
                 }
             });
         });
-    }
-
-    getFilteredProjects() {
-        return this.projects.filter(project => {
-            // Search filter
-            const searchMatch = !this.projectSearchTerm || 
-                project.name.toLowerCase().includes(this.projectSearchTerm.toLowerCase()) ||
-                project.description.toLowerCase().includes(this.projectSearchTerm.toLowerCase());
-
-            // Status filter
-            const statusMatch = !this.projectFilters.status || project.status === this.projectFilters.status;
-
-            return searchMatch && statusMatch;
-        });
-    }
-
-   renderProjects() {
-        const container = document.getElementById('projects-container');
-        if (!container) return;
-
-        const filteredProjects = this.getFilteredProjects();
-        
-        container.innerHTML = filteredProjects.map(project => `
-            <div class="project-card status-${project.status}" data-project-id="${project.id}">
-                <!-- Existing project card content remains same -->
-                <div class="project-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="app.showProjectInfo('${project.name}')">
-                        <i class="fas fa-info-circle"></i> Info
-                    </button>
-                    <button class="btn btn-sm btn-outline" onclick="app.deleteProject(${project.id})">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-            </div>
-        `).join('');
-        
-        this.animateProgressBars();
-    }
-
-    // New method to fetch and show project info
-    async showProjectInfo(projectName) {
-        try {
-            if (this.projectAllotments.length === 0) {
-                const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?gid=1832534408&single=true&output=csv');
-                const csvData = await response.text();
-                this.projectAllotments = this.parseCSV(csvData);
-            }
-
-            const projectData = this.projectAllotments.find(p => p['Project Name'] === projectName);
-            if (!projectData) throw new Error('Project not found in sheet');
-
-            const modalContent = `
-                <div class="project-info-grid">
-                    <div class="info-item">
-                        <label>Project Manager:</label>
-                        <span>${projectData['Project Manager'] || 'N/A'}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Team Members:</label>
-                        <span>${projectData['Team Members'] || 'N/A'}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Budget:</label>
-                        <span>${projectData['Budget'] || 'N/A'}</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Timeline:</label>
-                        <span>${projectData['Timeline'] || 'N/A'}</span>
-                    </div>
-                    <div class="info-item full-width">
-                        <label>Key Deliverables:</label>
-                        <p>${projectData['Key Deliverables'] || 'N/A'}</p>
-                    </div>
-                    <div class="info-item full-width">
-                        <label>Risk Factors:</label>
-                        <p>${projectData['Risk Factors'] || 'N/A'}</p>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('project-info-content').innerHTML = modalContent;
-            this.openModal('project-info-modal');
-        } catch (error) {
-            this.showToast(`Error loading project info: ${error.message}`, 'error');
-        }
-    }
-
-    // CSV parsing helper
-    parseCSV(csv) {
-        const rows = csv.split('\n');
-        const headers = rows[0].split(',').map(h => h.trim());
-        return rows.slice(1).map(row => {
-            const values = row.split(',');
-            return headers.reduce((obj, header, index) => {
-                obj[header] = values[index] ? values[index].trim() : '';
-                return obj;
-            }, {});
-        });
-    }
-    
-// Modified createProject method
-async createProject(form) {
-    const formData = new FormData(form);
-    
-    const newProject = {
-        id: Math.max(...this.projects.map(p => p.id), 0) + 1,
-        name: formData.get('name'),
-        description: formData.get('description') || '',
-        dueDate: formData.get('dueDate'),
-        status: 'not-started',
-        skills: formData.get('skills').split(',').map(skill => skill.trim()),
-        createdDate: new Date().toISOString().split('T')[0],
-        assignedTo: [],
-        dailyProgress: []
-    };
-
-    if (!newProject.name || !newProject.dueDate) {
-        this.showToast('Please fill in all required fields', 'error');
-        return;
-    }
-
-    try {
-        // Send to n8n webhook
-        const response = await fetch('https://abcd-004.app.n8n.cloud/webhook-test/1e40ea3a-cd73-46ae-ac2b-28dc6e1af803', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newProject)
-        });
-
-        if (!response.ok) throw new Error('Failed to send to n8n');
-        
-        this.projects.push(newProject);
-        this.saveToStorage();
-        this.renderProjects();
-        this.closeModal('create-project-modal');
-        form.reset();
-        this.showToast('Project created successfully!', 'success');
-    } catch (error) {
-        this.showToast('Error creating project: ' + error.message, 'error');
-    }
-}
-
-    editProject(projectId) {
-        const project = this.projects.find(p => p.id === projectId);
-        if (!project) return;
-
-        // Pre-fill the form with existing data
-        const form = document.getElementById('create-project-form');
-        if (form) {
-            form.querySelector('input[name="name"]').value = project.name;
-            form.querySelector('textarea[name="description"]').value = project.description;
-            form.querySelector('input[name="dueDate"]').value = project.dueDate;
-            form.querySelector('select[name="status"]').value = project.status;
-            form.querySelector('input[name="progress"]').value = project.progress;
-            form.querySelector('.progress-value').textContent = `${project.progress}%`;
-
-            // Change form submission to update mode
-            form.onsubmit = (e) => {
-                e.preventDefault();
-                this.updateProject(projectId, form);
-            };
-
-            // Update modal title
-            document.querySelector('#create-project-modal .modal-header h3').textContent = 'Edit Project';
-            
-            this.openModal('create-project-modal');
-        }
-    }
-
-    updateProject(projectId, form) {
-        const formData = new FormData(form);
-        const projectIndex = this.projects.findIndex(p => p.id === projectId);
-        
-        if (projectIndex === -1) return;
-
-        const updatedProject = {
-            ...this.projects[projectIndex],
-            name: formData.get('name'),
-            description: formData.get('description') || '',
-            dueDate: formData.get('dueDate'),
-            progress: parseInt(formData.get('progress')) || 0,
-            status: formData.get('status')
-        };
-
-        this.projects[projectIndex] = updatedProject;
-        this.saveToStorage();
-        this.renderProjects();
-        this.closeModal('create-project-modal');
-        
-        // Reset form submission and modal title
-        form.onsubmit = (e) => {
-            e.preventDefault();
-            this.createProject(form);
-        };
-        document.querySelector('#create-project-modal .modal-header h3').textContent = 'Create New Project';
-        
-        this.showToast('Project updated successfully!', 'success');
-    }
-
-    deleteProject(projectId) {
-        if (!confirm('Are you sure you want to delete this project?')) return;
-
-        const projectIndex = this.projects.findIndex(p => p.id === projectId);
-        if (projectIndex === -1) return;
-
-        this.projects.splice(projectIndex, 1);
-        this.saveToStorage();
-        this.renderProjects();
-        this.showToast('Project deleted successfully!', 'success');
     }
 
     handleAuth(form) {
@@ -2209,11 +2267,16 @@ async createProject(form) {
     }
 
     formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        if (!dateString) return 'No date set';
+        try {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (error) {
+            return dateString; // Return original if parsing fails
+        }
     }
 
     formatStatus(status) {
@@ -2223,15 +2286,6 @@ async createProject(form) {
             'complete': 'Complete'
         };
         return statusMap[status] || status;
-    }
-
-    getStatusClass(status) {
-        const classMap = {
-            'complete': 'success',
-            'in-progress': 'warning',
-            'not-started': 'error'
-        };
-        return classMap[status] || 'info';
     }
 
     showToast(message, type = 'info') {
