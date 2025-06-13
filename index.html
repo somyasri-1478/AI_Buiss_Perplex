@@ -6,6 +6,10 @@
     <title>Productivity Beast | AI-Powered Productivity Suite</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google API Client Library -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
     <!-- Auth Page with Animated Background -->
@@ -131,10 +135,6 @@
                     <i class="fas fa-bullseye"></i>
                     <span>Goals & Projects</span>
                 </li>
-                <li class="nav-item" data-section="analytics">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Analytics</span>
-                </li>
                 <li class="nav-item" data-section="settings">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -214,9 +214,267 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Team Communications Section -->
+                <div class="messaging-section">
+                    <h3>Team Communications</h3>
+                    <div class="messaging-controls">
+                        <div class="recipient-options">
+                            <h4>Send to</h4>
+                            <label class="checkbox-label">
+                                <input type="radio" name="recipients" value="all" checked> All Team Members
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="radio" name="recipients" value="selected"> Selected Members
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="radio" name="recipients" value="project"> Selected Project's Members
+                            </label>
+                            <div class="project-selection" style="display: none;">
+                                <label class="form-label">Select Project:</label>
+                                <select id="project-member-filter" class="form-control">
+                                    <option value="">Choose Project</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="message-template">
+                            <h4>Message Template</h4>
+                            <select id="message-template" class="form-control">
+                                <option value="">Select Template</option>
+                            </select>
+                        </div>
+                    </div>
+                    <h4>Send via</h4>
+                    <div class="integration-buttons">
+                        <button class="btn btn-primary integration-btn">
+                            <i class="fas fa-envelope"></i> Send via Gmail
+                        </button>
+                        <button class="btn btn-outline integration-btn">
+                            <i class="fab fa-whatsapp"></i> Send via WhatsApp
+                        </button>
+                        <button class="btn btn-outline integration-btn">
+                            <i class="fab fa-slack"></i> Send via Slack
+                        </button>
+                        <button class="btn btn-outline integration-btn">
+                            <i class="fab fa-microsoft"></i> Send via Teams
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analytics Section (Moved from separate section) -->
+                <div class="analytics-section">
+                    <h3>Analytics & Performance</h3>
+                    
+                    <!-- Analytics Navigation -->
+                    <div class="analytics-nav">
+                        <button class="analytics-tab active" data-tab="overview">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Overview</span>
+                        </button>
+                        <button class="analytics-tab" data-tab="projects">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Projects</span>
+                        </button>
+                        <button class="analytics-tab" data-tab="employees">
+                            <i class="fas fa-users"></i>
+                            <span>Employees</span>
+                        </button>
+                        <button class="analytics-tab" data-tab="performance">
+                            <i class="fas fa-trophy"></i>
+                            <span>Performance</span>
+                        </button>
+                        <span class="analytics-tab-indicator"></span>
+                    </div>
+
+                    <!-- Overview Analytics -->
+                    <div id="overview-analytics" class="analytics-content active">
+                        <div class="analytics-grid">
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Productivity Overview</h3>
+                                    <div class="chart-period">
+                                        <select id="overview-period" class="form-control">
+                                            <option value="week">This Week</option>
+                                            <option value="month">This Month</option>
+                                            <option value="quarter">This Quarter</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="productivity-overview-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Team Performance Distribution</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="team-performance-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card span-full">
+                                <div class="analytics-card-header">
+                                    <h3>Daily Activity Trends</h3>
+                                    <div class="chart-period">
+                                        <select id="daily-trends-period" class="form-control">
+                                            <option value="7">Last 7 Days</option>
+                                            <option value="14">Last 14 Days</option>
+                                            <option value="30">Last 30 Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="daily-trends-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projects Analytics -->
+                    <div id="projects-analytics" class="analytics-content">
+                        <div class="analytics-grid">
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Project Completion Rate</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="project-completion-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Project Status Overview</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="project-status-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card span-full">
+                                <div class="analytics-card-header">
+                                    <h3>Project Timeline & Deadlines</h3>
+                                    <div class="chart-period">
+                                        <select id="project-timeline-filter" class="form-control">
+                                            <option value="all">All Projects</option>
+                                            <option value="active">Active Projects</option>
+                                            <option value="completed">Completed Projects</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="project-timeline-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card span-full">
+                                <div class="analytics-card-header">
+                                    <h3>Daily Project Progress</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="project-progress-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employees Analytics -->
+                    <div id="employees-analytics" class="analytics-content">
+                        <div class="analytics-grid">
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Employee Productivity Score</h3>
+                                    <div class="chart-period">
+                                        <select id="employee-period" class="form-control">
+                                            <option value="week">This Week</option>
+                                            <option value="month">This Month</option>
+                                            <option value="quarter">This Quarter</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="employee-productivity-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Department Performance</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="department-performance-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card span-full">
+                                <div class="analytics-card-header">
+                                    <h3>Individual Employee Performance</h3>
+                                    <div class="chart-period">
+                                        <select id="individual-employee-filter" class="form-control">
+                                            <option value="all">All Employees</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="individual-performance-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card span-full">
+                                <div class="analytics-card-header">
+                                    <h3>Weekly Employee Activity</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="weekly-activity-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Analytics -->
+                    <div id="performance-analytics" class="analytics-content">
+                        <div class="analytics-grid">
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Overall Performance Metrics</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="performance-metrics-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card">
+                                <div class="analytics-card-header">
+                                    <h3>Goal Achievement Rate</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="goal-achievement-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="analytics-card span-full">
+                                <div class="analytics-card-header">
+                                    <h3>Performance Trends</h3>
+                                    <div class="chart-period">
+                                        <select id="performance-trends-period" class="form-control">
+                                            <option value="30">Last 30 Days</option>
+                                            <option value="60">Last 60 Days</option>
+                                            <option value="90">Last 90 Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="performance-trends-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-            <!-- Team Management Section -->
+            <!-- Team Management Section (Messaging section removed) -->
             <section id="team-section" class="content-section">
                 <div class="section-header">
                     <p class="section-description">Manage your team members, roles, and communications</p>
@@ -278,42 +536,6 @@
                 <div id="members-container" class="members-container members-grid">
                     <!-- Members will be dynamically inserted here -->
                 </div>
-                
-                <div class="messaging-section">
-                    <h3>Team Communications</h3>
-                    <div class="messaging-controls">
-                        <div class="recipient-options">
-                            <h4>Send to</h4>
-                            <label class="checkbox-label">
-                                <input type="radio" name="recipients" value="all" checked> All Team Members
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="radio" name="recipients" value="selected"> Selected Members
-                            </label>
-                        </div>
-                        <div class="message-template">
-                            <h4>Message Template</h4>
-                            <select id="message-template" class="form-control">
-                                <option value="">Select Template</option>
-                            </select>
-                        </div>
-                    </div>
-                    <h4>Send via</h4>
-                    <div class="integration-buttons">
-                        <button class="btn btn-primary integration-btn">
-                            <i class="fas fa-envelope"></i> Send via Gmail
-                        </button>
-                        <button class="btn btn-outline integration-btn">
-                            <i class="fab fa-whatsapp"></i> Send via WhatsApp
-                        </button>
-                        <button class="btn btn-outline integration-btn">
-                            <i class="fab fa-slack"></i> Send via Slack
-                        </button>
-                        <button class="btn btn-outline integration-btn">
-                            <i class="fab fa-microsoft"></i> Send via Teams
-                        </button>
-                    </div>
-                </div>
             </section>
 
             <!-- Projects Section -->
@@ -350,482 +572,285 @@
                 </div>
             </section>
 
-            <!-- Analytics Section -->
-            <section id="analytics-section" class="content-section">
+            <!-- Settings Section -->
+            <section id="settings-section" class="content-section">
                 <div class="section-header">
-                    <p class="section-description">Track performance and insights across projects and team members</p>
-                </div>
-                
-                <!-- Analytics Navigation -->
-                <div class="analytics-nav">
-                    <button class="analytics-tab active" data-tab="overview">
-                        <i class="fas fa-chart-pie"></i>
-                        <span>Overview</span>
-                    </button>
-                    <button class="analytics-tab" data-tab="projects">
-                        <i class="fas fa-project-diagram"></i>
-                        <span>Projects</span>
-                    </button>
-                    <button class="analytics-tab" data-tab="employees">
-                        <i class="fas fa-users"></i>
-                        <span>Employees</span>
-                    </button>
-                    <button class="analytics-tab" data-tab="performance">
-                        <i class="fas fa-trophy"></i>
-                        <span>Performance</span>
-                    </button>
-                    <span class="analytics-tab-indicator"></span>
+                    <h2 class="gradient-text">Application Settings</h2>
+                    <p class="section-description">Customize your Productivity Beast experience</p>
                 </div>
 
-                <!-- Overview Analytics -->
-                <div id="overview-analytics" class="analytics-content active">
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Productivity Overview</h3>
-                                <div class="chart-period">
-                                    <select id="overview-period" class="form-control">
-                                        <option value="week">This Week</option>
-                                        <option value="month">This Month</option>
-                                        <option value="quarter">This Quarter</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="productivity-overview-chart"></canvas>
+                <div class="settings-grid">
+                    <!-- Account Preferences -->
+                    <div class="settings-card">
+                        <h3><i class="fas fa-user-cog"></i> Account Preferences</h3>
+                        <div class="form-group">
+                            <label class="form-label">Theme</label>
+                            <div class="theme-toggle">
+                                <button class="theme-btn light active" data-theme="light">Light</button>
+                                <button class="theme-btn dark" data-theme="dark">Dark</button>
                             </div>
                         </div>
-                        
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Team Performance Distribution</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="team-performance-chart"></canvas>
+                        <div class="form-group">
+                            <label class="form-label">Time Zone</label>
+                            <select class="form-control" id="timezone">
+                                <option value="-12:00">(GMT-12:00) International Date Line West</option>
+                                <option value="-11:00">(GMT-11:00) Midway Island, Samoa</option>
+                                <option value="-10:00">(GMT-10:00) Hawaii</option>
+                                <option value="-9:00">(GMT-9:00) Alaska</option>
+                                <option value="-8:00">(GMT-8:00) Pacific Time (US & Canada)</option>
+                                <option value="-7:00">(GMT-7:00) Mountain Time (US & Canada)</option>
+                                <option value="-6:00">(GMT-6:00) Central Time (US & Canada)</option>
+                                <option value="-5:00">(GMT-5:00) Eastern Time (US & Canada)</option>
+                                <option value="0:00" selected>(GMT+0:00) Greenwich Mean Time</option>
+                                <option value="+1:00">(GMT+1:00) Central European Time</option>
+                                <option value="+5:30">(GMT+5:30) India Standard Time</option>
+                                <option value="+8:00">(GMT+8:00) China Standard Time</option>
+                                <option value="+9:00">(GMT+9:00) Japan Standard Time</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="settings-card">
+                        <h3><i class="fas fa-shield-alt"></i> Security</h3>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="security-action">
+                                <button class="btn btn-outline" id="change-password">
+                                    <i class="fas fa-key"></i> Change Password
+                                </button>
                             </div>
                         </div>
-                        
-                        <div class="analytics-card span-full">
-                            <div class="analytics-card-header">
-                                <h3>Daily Activity Trends</h3>
-                                <div class="chart-period">
-                                    <select id="daily-trends-period" class="form-control">
-                                        <option value="7">Last 7 Days</option>
-                                        <option value="14">Last 14 Days</option>
-                                        <option value="30">Last 30 Days</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="daily-trends-chart"></canvas>
+                        <div class="form-group">
+                            <label class="form-label">Two-Factor Authentication</label>
+                            <div class="security-action">
+                                <label class="switch">
+                                    <input type="checkbox" id="2fa-toggle">
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Projects Analytics -->
-                <div id="projects-analytics" class="analytics-content">
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Project Completion Rate</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="project-completion-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Project Status Overview</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="project-status-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="analytics-card span-full">
-                            <div class="analytics-card-header">
-                                <h3>Project Timeline & Deadlines</h3>
-                                <div class="chart-period">
-                                    <select id="project-timeline-filter" class="form-control">
-                                        <option value="all">All Projects</option>
-                                        <option value="active">Active Projects</option>
-                                        <option value="completed">Completed Projects</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="project-timeline-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="analytics-card span-full">
-                            <div class="analytics-card-header">
-                                <h3>Daily Project Progress</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="project-progress-chart"></canvas>
+                    <!-- Notifications -->
+                    <div class="settings-card">
+                        <h3><i class="fas fa-bell"></i> Notifications</h3>
+                        <div class="form-group">
+                            <label class="form-label">Email Notifications</label>
+                            <div class="notification-pref">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" checked> Task Reminders
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" checked> Project Updates
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox"> Weekly Reports
+                                </label>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Employees Analytics -->
-                <div id="employees-analytics" class="analytics-content">
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Employee Productivity Score</h3>
-                                <div class="chart-period">
-                                    <select id="employee-period" class="form-control">
-                                        <option value="week">This Week</option>
-                                        <option value="month">This Month</option>
-                                        <option value="quarter">This Quarter</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="employee-productivity-chart"></canvas>
-                            </div>
+                    <!-- Team Settings -->
+                    <div class="settings-card">
+                        <h3><i class="fas fa-users"></i> Team Management</h3>
+                        <div class="form-group">
+                            <label class="form-label">Default Member Role</label>
+                            <select class="form-control" id="default-role">
+                                <option value="member">Member</option>
+                                <option value="admin">Admin</option>
+                            </select>
                         </div>
-                        
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Department Performance</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="department-performance-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="analytics-card span-full">
-                            <div class="analytics-card-header">
-                                <h3>Individual Employee Performance</h3>
-                                <div class="chart-period">
-                                    <select id="individual-employee-filter" class="form-control">
-                                        <option value="all">All Employees</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="individual-performance-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="analytics-card span-full">
-                            <div class="analytics-card-header">
-                                <h3>Weekly Employee Activity</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="weekly-activity-chart"></canvas>
+                        <div class="form-group">
+                            <label class="form-label">Data Retention</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="365" min="30">
+                                <span class="input-suffix">days</span>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Performance Analytics -->
-                <div id="performance-analytics" class="analytics-content">
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Overall Performance Metrics</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="performance-metrics-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="analytics-card">
-                            <div class="analytics-card-header">
-                                <h3>Goal Achievement Rate</h3>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="goal-achievement-chart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="analytics-card span-full">
-                            <div class="analytics-card-header">
-                                <h3>Performance Trends</h3>
-                                <div class="chart-period">
-                                    <select id="performance-trends-period" class="form-control">
-                                        <option value="30">Last 30 Days</option>
-                                        <option value="60">Last 60 Days</option>
-                                        <option value="90">Last 90 Days</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="performance-trends-chart"></canvas>
-                            </div>
+                    <!-- Data Management -->
+                    <div class="settings-card">
+                        <h3><i class="fas fa-database"></i> Data Management</h3>
+                        <div class="data-actions">
+                            <button class="btn btn-outline">
+                                <i class="fas fa-file-export"></i> Export Data
+                            </button>
+                            <button class="btn btn-outline">
+                                <i class="fas fa-trash"></i> Delete Account
+                            </button>
                         </div>
                     </div>
                 </div>
             </section>
 
-    <!-- Updated Settings Section -->
-    <section id="settings-section" class="content-section">
-        <div class="section-header">
-            <h2 class="gradient-text">Application Settings</h2>
-            <p class="section-description">Customize your Productivity Beast experience</p>
-        </div>
+            <!-- Help & Support Section -->
+            <section id="help-section" class="content-section">
+                <div class="section-header">
+                    <h2 class="gradient-text">Help & Support</h2>
+                    <p class="section-description">Get assistance and learn how to use Productivity Beast</p>
+                </div>
 
-        <div class="settings-grid">
-            <!-- Account Preferences -->
-            <div class="settings-card">
-                <h3><i class="fas fa-user-cog"></i> Account Preferences</h3>
-                <div class="form-group">
-                    <label class="form-label">Theme</label>
-                    <div class="theme-toggle">
-                        <button class="theme-btn light active" data-theme="light">Light</button>
-                        <button class="theme-btn dark" data-theme="dark">Dark</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Time Zone</label>
-                    <select class="form-control" id="timezone">
-                        <option value="-12:00">(GMT-12:00) International Date Line West</option>
-                        <!-- Timezone options -->
-                    </select>
-                </div>
-            </div>
-
-            <!-- Security Settings -->
-            <div class="settings-card">
-                <h3><i class="fas fa-shield-alt"></i> Security</h3>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <div class="security-action">
-                        <button class="btn btn-outline" id="change-password">
-                            <i class="fas fa-key"></i> Change Password
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Two-Factor Authentication</label>
-                    <div class="security-action">
-                        <label class="switch">
-                            <input type="checkbox" id="2fa-toggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Notifications -->
-            <div class="settings-card">
-                <h3><i class="fas fa-bell"></i> Notifications</h3>
-                <div class="form-group">
-                    <label class="form-label">Email Notifications</label>
-                    <div class="notification-pref">
-                        <label class="checkbox-label">
-                            <input type="checkbox" checked> Task Reminders
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" checked> Project Updates
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox"> Weekly Reports
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Team Settings -->
-            <div class="settings-card">
-                <h3><i class="fas fa-users"></i> Team Management</h3>
-                <div class="form-group">
-                    <label class="form-label">Default Member Role</label>
-                    <select class="form-control" id="default-role">
-                        <option value="member">Member</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Data Retention</label>
-                    <input type="number" class="form-control" value="365" min="30">
-                    <span class="input-suffix">days</span>
-                </div>
-            </div>
-
-            <!-- Integrations -->
-            <div class="settings-card">
-                <h3><i class="fas fa-plug"></i> Integrations</h3>
-                <div class="integrations-grid">
-                    <div class="integration-card">
-                        <img src="slack-icon.png" alt="Slack">
-                        <div class="integration-status">
-                            <label class="switch small">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
+                <div class="help-grid">
+                    <!-- Documentation -->
+                    <div class="help-card">
+                        <div class="help-card-header">
+                            <i class="fas fa-book-open"></i>
+                            <h3>Documentation</h3>
+                        </div>
+                        <div class="help-card-body">
+                            <ul class="doc-links">
+                                <li><a href="#"><i class="fas fa-play"></i> Getting Started Guide</a></li>
+                                <li><a href="#"><i class="fas fa-tasks"></i> Feature Overview</a></li>
+                                <li><a href="#"><i class="fas fa-users"></i> Team Management Guide</a></li>
+                                <li><a href="#"><i class="fas fa-chart-line"></i> Analytics Dashboard</a></li>
+                                <li><a href="#"><i class="fas fa-cog"></i> Settings Configuration</a></li>
+                            </ul>
                         </div>
                     </div>
-                    <!-- More integration cards -->
-                </div>
-            </div>
 
-            <!-- Data Management -->
-            <div class="settings-card">
-                <h3><i class="fas fa-database"></i> Data Management</h3>
-                <div class="data-actions">
-                    <button class="btn btn-outline">
-                        <i class="fas fa-file-export"></i> Export Data
-                    </button>
-                    <button class="btn btn-outline">
-                        <i class="fas fa-trash"></i> Delete Account
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Updated Help & Support Section -->
-    <section id="help-section" class="content-section">
-        <div class="section-header">
-            <h2 class="gradient-text">Help & Support</h2>
-            <p class="section-description">Get assistance and learn how to use Productivity Beast</p>
-        </div>
-
-        <div class="help-grid">
-            <!-- Documentation -->
-            <div class="help-card">
-                <div class="help-card-header">
-                    <i class="fas fa-book-open"></i>
-                    <h3>Documentation</h3>
-                </div>
-                <div class="help-card-body">
-                    <ul class="doc-links">
-                        <li><a href="#"><i class="fas fa-play"></i> Getting Started Guide</a></li>
-                        <li><a href="#"><i class="fas fa-tasks"></i> Feature Overview</a></li>
-                        <li><a href="#"><i class="fas fa-users"></i> Team Management Guide</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Contact Support -->
-            <div class="help-card">
-                <div class="help-card-header">
-                    <i class="fas fa-headset"></i>
-                    <h3>Contact Support</h3>
-                </div>
-                <div class="help-card-body">
-                    <form id="support-form">
-                        <div class="form-group">
-                            <label class="form-label">Subject</label>
-                            <input type="text" class="form-control" required>
+                    <!-- Contact Support -->
+                    <div class="help-card">
+                        <div class="help-card-header">
+                            <i class="fas fa-headset"></i>
+                            <h3>Contact Support</h3>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Message</label>
-                            <textarea class="form-control" rows="4" required></textarea>
+                        <div class="help-card-body">
+                            <form id="support-form">
+                                <div class="form-group">
+                                    <label class="form-label">Subject</label>
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Message</label>
+                                    <textarea class="form-control" rows="4" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-gradient">
+                                    <i class="fas fa-paper-plane"></i> Send Message
+                                </button>
+                            </form>
                         </div>
-                        <button type="submit" class="btn btn-gradient">
-                            <i class="fas fa-paper-plane"></i> Send Message
-                        </button>
-                    </form>
-                </div>
-            </div>
+                    </div>
 
-            <!-- Resources -->
-            <div class="help-card">
-                <div class="help-card-header">
-                    <i class="fas fa-life-ring"></i>
-                    <h3>Resources</h3>
-                </div>
-                <div class="help-card-body">
-                    <div class="resource-list">
-                        <div class="resource-item">
-                            <i class="fab fa-youtube"></i>
-                            <div>
-                                <h4>Video Tutorials</h4>
-                                <p>Watch step-by-step guides</p>
+                    <!-- Resources -->
+                    <div class="help-card">
+                        <div class="help-card-header">
+                            <i class="fas fa-life-ring"></i>
+                            <h3>Resources</h3>
+                        </div>
+                        <div class="help-card-body">
+                            <div class="resource-list">
+                                <div class="resource-item">
+                                    <i class="fab fa-youtube"></i>
+                                    <div>
+                                        <h4>Video Tutorials</h4>
+                                        <p>Watch step-by-step guides</p>
+                                    </div>
+                                </div>
+                                <div class="resource-item">
+                                    <i class="fas fa-comments"></i>
+                                    <div>
+                                        <h4>Community Forum</h4>
+                                        <p>Connect with other users</p>
+                                    </div>
+                                </div>
+                                <div class="resource-item">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>
+                                        <h4>API Documentation</h4>
+                                        <p>Developer resources</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="resource-item">
-                            <i class="fas fa-comments"></i>
-                            <div>
-                                <h4>Community Forum</h4>
-                                <p>Connect with other users</p>
+                    </div>
+
+                    <!-- System Status -->
+                    <div class="help-card">
+                        <div class="help-card-header">
+                            <i class="fas fa-heartbeat"></i>
+                            <h3>System Status</h3>
+                        </div>
+                        <div class="help-card-body">
+                            <div class="status-indicator">
+                                <div class="status-dot operational"></div>
+                                <span>All Systems Operational</span>
+                            </div>
+                            <div class="incident-history">
+                                <div class="incident">
+                                    <span class="status-dot resolved"></span>
+                                    <div>
+                                        <h4>API Latency Issues</h4>
+                                        <p>Resolved 2 hours ago</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="resource-item">
-                            <i class="fas fa-file-alt"></i>
-                            <div>
-                                <h4>API Documentation</h4>
-                                <p>Developer resources</p>
+                    </div>
+
+                    <!-- Legal -->
+                    <div class="help-card">
+                        <div class="help-card-header">
+                            <i class="fas fa-balance-scale"></i>
+                            <h3>Legal</h3>
+                        </div>
+                        <div class="help-card-body">
+                            <ul class="legal-links">
+                                <li><a href="#"><i class="fas fa-file-contract"></i> Terms of Service</a></li>
+                                <li><a href="#"><i class="fas fa-lock"></i> Privacy Policy</a></li>
+                                <li><a href="#"><i class="fas fa-cookie"></i> Cookie Policy</a></li>
+                                <li><a href="#"><i class="fas fa-shield-alt"></i> Security Policy</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- About -->
+                    <div class="help-card">
+                        <div class="help-card-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h3>About</h3>
+                        </div>
+                        <div class="help-card-body">
+                            <div class="about-content">
+                                <div class="about-logo">
+                                    <i class="fas fa-rocket" style="font-size: 3rem; color: var(--color-primary);"></i>
+                                </div>
+                                <p><strong>Productivity Beast</strong></p>
+                                <p>Version 2.4.1</p>
+                                <p>© 2025 Productivity Beast. All rights reserved.</p>
+                                <div class="social-links">
+                                    <a href="#"><i class="fab fa-twitter"></i></a>
+                                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                                    <a href="#"><i class="fab fa-github"></i></a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- System Status -->
-            <div class="help-card">
-                <div class="help-card-header">
-                    <i class="fas fa-heartbeat"></i>
-                    <h3>System Status</h3>
-                </div>
-                <div class="help-card-body">
-                    <div class="status-indicator">
-                        <div class="status-dot operational"></div>
-                        <span>All Systems Operational</span>
-                    </div>
-                    <div class="incident-history">
-                        <div class="incident">
-                            <span class="status-dot resolved"></span>
-                            <div>
-                                <h4>API Latency Issues</h4>
-                                <p>Resolved 2 hours ago</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Legal -->
-            <div class="help-card">
-                <div class="help-card-header">
-                    <i class="fas fa-balance-scale"></i>
-                    <h3>Legal</h3>
-                </div>
-                <div class="help-card-body">
-                    <ul class="legal-links">
-                        <li><a href="#"><i class="fas fa-file-contract"></i> Terms of Service</a></li>
-                        <li><a href="#"><i class="fas fa-lock"></i> Privacy Policy</a></li>
-                        <li><a href="#"><i class="fas fa-cookie"></i> Cookie Policy</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- About -->
-            <div class="help-card">
-                <div class="help-card-header">
-                    <i class="fas fa-info-circle"></i>
-                    <h3>About</h3>
-                </div>
-                <div class="help-card-body">
-                    <div class="about-content">
-                        <img src="logo.png" alt="Productivity Beast" class="about-logo">
-                        <p>Version 2.4.1</p>
-                        <p>© 2025 Productivity Beast. All rights reserved.</p>
-                        <div class="social-links">
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fab fa-linkedin"></i></a>
-                            <a href="#"><i class="fab fa-github"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+            </section>
         </main>
     </div>
 
     <!-- Toast Container -->
     <div id="toast-container"></div>
 
-    <!-- Modals -->
+    <!-- Project Info Modal -->
+    <div id="project-info-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Project Details</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="project-info-content">
+                <div class="project-info-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading project details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Generate Invite Modal -->
     <div id="invite-modal" class="modal">
         <div class="modal-content">
@@ -1015,54 +1040,39 @@
         </div>
     </div>
 
-<!-- Create Project Modal -->
-<div id="create-project-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Create New Project</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="create-project-form">
-                <div class="form-group">
-                    <label class="form-label">Project Name</label>
-                    <input type="text" name="name" class="form-control" placeholder="Project Title" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" placeholder="Project description..." rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Due Date</label>
-                    <input type="date" name="dueDate" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Required Skills (comma separated)</label>
-                    <input type="text" name="skills" class="form-control" placeholder="JavaScript, Project Management, Design" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-outline cancel-btn">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Project</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div id="project-info-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Project Details</h3>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body" id="project-info-content">
-            <div class="project-info-loading">
-                <div class="loading-spinner"></div>
-                <p>Loading project details...</p>
+    <!-- Create Project Modal -->
+    <div id="create-project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Project</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-project-form">
+                    <div class="form-group">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="Project Title" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" placeholder="Project description..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Due Date</label>
+                        <input type="date" name="dueDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Required Skills (comma separated)</label>
+                        <input type="text" name="skills" class="form-control" placeholder="JavaScript, Project Management, Design" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Project</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
-
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
