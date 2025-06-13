@@ -368,6 +368,182 @@ class ProductivityBeastApp {
         }
     }
 
+    calculateProjectStatuses() {
+    return this.projects.map(project => {
+        const tasks = this.allotments.filter(t => t.Project_Name === project['Project Name']);
+        const completedTasks = tasks.filter(t => t.Task_Status === 'Completed').length;
+        
+        return {
+            ...project,
+            totalTasks: tasks.length,
+            completedTasks,
+            progress: tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0,
+            derivedStatus: tasks.length === 0 ? 'Not Started' : 
+                         completedTasks === tasks.length ? 'Completed' : 'In Progress'
+        };
+    });
+}
+
+getDailyActivityData() {
+    const activityMap = new Map();
+    
+    this.allotments.forEach(task => {
+        const startDate = new Date(task.Start_Date).toISOString().split('T')[0];
+        const endDate = new Date(task.End_Date).toISOString().split('T')[0];
+        
+        if (!activityMap.has(startDate)) activityMap.set(startDate, { started: 0, completed: 0 });
+        if (!activityMap.has(endDate)) activityMap.set(endDate, { started: 0, completed: 0 });
+        
+        activityMap.get(startDate).started++;
+        if (task.Task_Status === 'Completed') activityMap.get(endDate).completed++;
+    });
+
+    return Array.from(activityMap.entries())
+        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+        .map(([date, counts]) => ({ date, ...counts }));
+}
+
+createOverviewCharts() {
+    const productivityData = this.getDailyActivityData();
+    const projectStatusCounts = this.calculateProjectStatuses()
+        .reduce((acc, p) => {
+            acc[p.derivedStatus] = (acc[p.derivedStatus] || 0) + 1;
+            return acc;
+        }, {});
+
+    // Productivity Overview Chart
+    const productivityCtx = document.getElementById('productivity-overview-chart');
+    if (productivityCtx) {
+        this.charts.productivityOverview = new Chart(productivityCtx, {
+            type: 'line',
+            data: {
+                labels: productivityData.map(d => new Date(d.date).toLocaleDateString()),
+                datasets: [{
+                    label: 'Tasks Completed',
+                    data: productivityData.map(d => d.completed),
+                    borderColor: '#8B45FF',
+                    backgroundColor: 'rgba(139, 69, 255, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: this.getChartOptions('Daily Completed Tasks')
+        });
+    }
+
+    // Team Performance Distribution
+    const teamPerformanceCtx = document.getElementById('team-performance-chart');
+    if (teamPerformanceCtx) {
+        const employeePerformance = this.teamMembers.map(member => {
+            const tasks = this.allotments.filter(t => t.Assigned_Employee === member.name);
+            return tasks.length > 0 ? 
+                (tasks.filter(t => t.Task_Status === 'Completed').length / tasks.length) * 100 : 0;
+        });
+        
+        const performanceLevels = {
+            high: employeePerformance.filter(p => p >= 80).length,
+            medium: employeePerformance.filter(p => p >= 50 && p < 80).length,
+            low: employeePerformance.filter(p => p < 50).length
+        };
+
+        this.charts.teamPerformance = new Chart(teamPerformanceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['High Performers (≥80%)', 'Medium Performers (50-79%)', 'Low Performers (<50%)'],
+                datasets: [{
+                    data: [performanceLevels.high, performanceLevels.medium, performanceLevels.low],
+                    backgroundColor: ['#48BB78', '#ED8936', '#F56565']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+}
+
+createProjectsCharts() {
+    const projects = this.calculateProjectStatuses();
+    
+    // Project Status Overview
+    const statusCtx = document.getElementById('project-status-chart');
+    if (statusCtx) {
+        const statusCounts = projects.reduce((acc, p) => {
+            acc[p.derivedStatus] = (acc[p.derivedStatus] || 0) + 1;
+            return acc;
+        }, {});
+
+        this.charts.projectStatus = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusCounts),
+                datasets: [{
+                    data: Object.values(statusCounts),
+                    backgroundColor: ['#F56565', '#ED8936', '#48BB78']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    // Project Timeline & Deadlines
+    const timelineCtx = document.getElementById('project-timeline-chart');
+    if (timelineCtx) {
+        const sortedProjects = projects.sort((a, b) => 
+            new Date(a['Due Date']) - new Date(b['Due Date']));
+        
+        this.charts.projectTimeline = new Chart(timelineCtx, {
+            type: 'bar',
+            data: {
+                labels: sortedProjects.map(p => p['Project Name']),
+                datasets: [{
+                    label: 'Progress',
+                    data: sortedProjects.map(p => p.progress),
+                    backgroundColor: sortedProjects.map(p => 
+                        p.derivedStatus === 'Completed' ? '#48BB78' :
+                        p.derivedStatus === 'In Progress' ? '#ED8936' : '#F56565')
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: { x: { max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+}
+
+createEmployeeCharts() {
+    // Employee Productivity Score
+    const productivityCtx = document.getElementById('employee-productivity-chart');
+    if (productivityCtx) {
+        const employeeData = this.teamMembers.map(member => {
+            const tasks = this.allotments.filter(t => t.Assigned_Employee === member.name);
+            return {
+                name: member.name,
+                productivity: tasks.length > 0 ? 
+                    (tasks.filter(t => t.Task_Status === 'Completed').length / tasks.length) * 100 : 0
+            };
+        });
+
+        this.charts.employeeProductivity = new Chart(productivityCtx, {
+            type: 'bar',
+            data: {
+                labels: employeeData.map(d => d.name),
+                datasets: [{
+                    label: 'Productivity Score',
+                    data: employeeData.map(d => d.productivity),
+                    backgroundColor: 'rgba(139, 69, 255, 0.8)'
+                }]
+            },
+            options: this.getChartOptions('Productivity Score (%)')
+        });
+    }
+}
+
     // Updated getFilteredProjects method
     getFilteredProjects() {
         return this.projects.filter(project => {
@@ -2368,197 +2544,19 @@ class ProductivityBeastApp {
             timeout = setTimeout(later, wait);
         };
     }
-    // Add these new methods to your ProductivityBeastApp class
-
-calculateProjectStatuses() {
-    return this.projects.map(project => {
-        const tasks = this.allotments.filter(t => t.Project_Name === project['Project Name']);
-        const completedTasks = tasks.filter(t => t.Task_Status === 'Completed').length;
-        
+    // Add this helper method
+    getChartOptions(title) {
         return {
-            ...project,
-            totalTasks: tasks.length,
-            completedTasks,
-            progress: tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0,
-            derivedStatus: tasks.length === 0 ? 'Not Started' : 
-                         completedTasks === tasks.length ? 'Completed' : 'In Progress'
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: title } }
+            },
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: title }
+            }
         };
-    });
-}
-
-getDailyActivityData() {
-    const activityMap = new Map();
-    
-    this.allotments.forEach(task => {
-        const startDate = new Date(task.Start_Date).toISOString().split('T')[0];
-        const endDate = new Date(task.End_Date).toISOString().split('T')[0];
-        
-        if (!activityMap.has(startDate)) activityMap.set(startDate, { started: 0, completed: 0 });
-        if (!activityMap.has(endDate)) activityMap.set(endDate, { started: 0, completed: 0 });
-        
-        activityMap.get(startDate).started++;
-        if (task.Task_Status === 'Completed') activityMap.get(endDate).completed++;
-    });
-
-    return Array.from(activityMap.entries())
-        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-        .map(([date, counts]) => ({ date, ...counts }));
-}
-
-createOverviewCharts() {
-    const productivityData = this.getDailyActivityData();
-    const projectStatusCounts = this.calculateProjectStatuses()
-        .reduce((acc, p) => {
-            acc[p.derivedStatus] = (acc[p.derivedStatus] || 0) + 1;
-            return acc;
-        }, {});
-
-    // Productivity Overview Chart
-    const productivityCtx = document.getElementById('productivity-overview-chart');
-    if (productivityCtx) {
-        this.charts.productivityOverview = new Chart(productivityCtx, {
-            type: 'line',
-            data: {
-                labels: productivityData.map(d => new Date(d.date).toLocaleDateString()),
-                datasets: [{
-                    label: 'Tasks Completed',
-                    data: productivityData.map(d => d.completed),
-                    borderColor: '#8B45FF',
-                    backgroundColor: 'rgba(139, 69, 255, 0.1)',
-                    tension: 0.4
-                }]
-            },
-            options: this.getChartOptions('Daily Completed Tasks')
-        });
     }
-
-    // Team Performance Distribution
-    const teamPerformanceCtx = document.getElementById('team-performance-chart');
-    if (teamPerformanceCtx) {
-        const employeePerformance = this.teamMembers.map(member => {
-            const tasks = this.allotments.filter(t => t.Assigned_Employee === member.name);
-            return tasks.length > 0 ? 
-                (tasks.filter(t => t.Task_Status === 'Completed').length / tasks.length) * 100 : 0;
-        });
-        
-        const performanceLevels = {
-            high: employeePerformance.filter(p => p >= 80).length,
-            medium: employeePerformance.filter(p => p >= 50 && p < 80).length,
-            low: employeePerformance.filter(p => p < 50).length
-        };
-
-        this.charts.teamPerformance = new Chart(teamPerformanceCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['High Performers (≥80%)', 'Medium Performers (50-79%)', 'Low Performers (<50%)'],
-                datasets: [{
-                    data: [performanceLevels.high, performanceLevels.medium, performanceLevels.low],
-                    backgroundColor: ['#48BB78', '#ED8936', '#F56565']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-    }
-}
-
-createProjectsCharts() {
-    const projects = this.calculateProjectStatuses();
-    
-    // Project Status Overview
-    const statusCtx = document.getElementById('project-status-chart');
-    if (statusCtx) {
-        const statusCounts = projects.reduce((acc, p) => {
-            acc[p.derivedStatus] = (acc[p.derivedStatus] || 0) + 1;
-            return acc;
-        }, {});
-
-        this.charts.projectStatus = new Chart(statusCtx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(statusCounts),
-                datasets: [{
-                    data: Object.values(statusCounts),
-                    backgroundColor: ['#F56565', '#ED8936', '#48BB78']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-    }
-
-    // Project Timeline & Deadlines
-    const timelineCtx = document.getElementById('project-timeline-chart');
-    if (timelineCtx) {
-        const sortedProjects = projects.sort((a, b) => 
-            new Date(a['Due Date']) - new Date(b['Due Date']));
-        
-        this.charts.projectTimeline = new Chart(timelineCtx, {
-            type: 'bar',
-            data: {
-                labels: sortedProjects.map(p => p['Project Name']),
-                datasets: [{
-                    label: 'Progress',
-                    data: sortedProjects.map(p => p.progress),
-                    backgroundColor: sortedProjects.map(p => 
-                        p.derivedStatus === 'Completed' ? '#48BB78' :
-                        p.derivedStatus === 'In Progress' ? '#ED8936' : '#F56565')
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                scales: { x: { max: 100 } },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-}
-
-createEmployeeCharts() {
-    // Employee Productivity Score
-    const productivityCtx = document.getElementById('employee-productivity-chart');
-    if (productivityCtx) {
-        const employeeData = this.teamMembers.map(member => {
-            const tasks = this.allotments.filter(t => t.Assigned_Employee === member.name);
-            return {
-                name: member.name,
-                productivity: tasks.length > 0 ? 
-                    (tasks.filter(t => t.Task_Status === 'Completed').length / tasks.length) * 100 : 0
-            };
-        });
-
-        this.charts.employeeProductivity = new Chart(productivityCtx, {
-            type: 'bar',
-            data: {
-                labels: employeeData.map(d => d.name),
-                datasets: [{
-                    label: 'Productivity Score',
-                    data: employeeData.map(d => d.productivity),
-                    backgroundColor: 'rgba(139, 69, 255, 0.8)'
-                }]
-            },
-            options: this.getChartOptions('Productivity Score (%)')
-        });
-    }
-}
-
-getChartOptions(title) {
-    return {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true, title: { display: true, text: title } }
-        },
-        plugins: {
-            legend: { position: 'top' },
-            title: { display: true, text: title }
-        }
-    };
-}
-
 }
 
 // Initialize the application
