@@ -1048,7 +1048,6 @@
         </div>
     </div>
 </div>
-<!-- Add this modal after other modals -->
 <div id="project-info-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1056,10 +1055,14 @@
             <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body" id="project-info-content">
-            <!-- Dynamic content will be inserted here -->
+            <div class="project-info-loading">
+                <div class="loading-spinner"></div>
+                <p>Loading project details...</p>
+            </div>
         </div>
     </div>
 </div>
+
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
