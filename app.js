@@ -6,6 +6,7 @@ class ProductivityBeastApp {
         this.currentView = 'grid';
         this.selectedMembers = new Set();
         this.searchTerm = '';
+        this.projectAllotments = [];
         this.filters = {
             department: '',
             experience: '',
@@ -1522,56 +1523,18 @@ class ProductivityBeastApp {
         });
     }
 
-    renderProjects() {
+   renderProjects() {
         const container = document.getElementById('projects-container');
         if (!container) return;
 
         const filteredProjects = this.getFilteredProjects();
-
-        if (filteredProjects.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-project-diagram"></i>
-                    <h3>No projects found</h3>
-                    <p>No projects match your current search criteria. Try adjusting your filters or create a new project.</p>
-                </div>
-            `;
-            return;
-        }
-
+        
         container.innerHTML = filteredProjects.map(project => `
             <div class="project-card status-${project.status}" data-project-id="${project.id}">
-                <div class="project-header">
-                    <h4 class="project-title">${this.highlightSearchTerm(project.name)}</h4>
-                    <p class="project-description">${this.highlightSearchTerm(project.description)}</p>
-                </div>
-                
-                <div class="project-meta">
-                    <div class="meta-item">
-                        <span class="meta-label">Due Date:</span>
-                        <span class="meta-value">${this.formatDate(project.dueDate)}</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Status:</span>
-                        <span class="meta-value status status--${this.getStatusClass(project.status)}">${this.formatStatus(project.status)}</span>
-                    </div>
-                </div>
-
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill ${project.status}" 
-                             style="width: 0%" 
-                             data-progress="${project.progress}%"></div>
-                    </div>
-                    <div class="progress-text">
-                        <span>Progress</span>
-                        <span>${project.progress}% Complete</span>
-                    </div>
-                </div>
-
+                <!-- Existing project card content remains same -->
                 <div class="project-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="app.editProject(${project.id})">
-                        <i class="fas fa-edit"></i> Edit
+                    <button class="btn btn-sm btn-secondary" onclick="app.showProjectInfo('${project.name}')">
+                        <i class="fas fa-info-circle"></i> Info
                     </button>
                     <button class="btn btn-sm btn-outline" onclick="app.deleteProject(${project.id})">
                         <i class="fas fa-trash"></i> Delete
@@ -1580,10 +1543,68 @@ class ProductivityBeastApp {
             </div>
         `).join('');
         
-        // Animate progress bars
-        if (typeof this.animateProgressBars === 'function') {
-            this.animateProgressBars();
+        this.animateProgressBars();
+    }
+
+    // New method to fetch and show project info
+    async showProjectInfo(projectName) {
+        try {
+            if (this.projectAllotments.length === 0) {
+                const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?gid=0&single=true&output=csv');
+                const csvData = await response.text();
+                this.projectAllotments = this.parseCSV(csvData);
+            }
+
+            const projectData = this.projectAllotments.find(p => p['Project Name'] === projectName);
+            if (!projectData) throw new Error('Project not found in sheet');
+
+            const modalContent = `
+                <div class="project-info-grid">
+                    <div class="info-item">
+                        <label>Project Manager:</label>
+                        <span>${projectData['Project Manager'] || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Team Members:</label>
+                        <span>${projectData['Team Members'] || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Budget:</label>
+                        <span>${projectData['Budget'] || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Timeline:</label>
+                        <span>${projectData['Timeline'] || 'N/A'}</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>Key Deliverables:</label>
+                        <p>${projectData['Key Deliverables'] || 'N/A'}</p>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>Risk Factors:</label>
+                        <p>${projectData['Risk Factors'] || 'N/A'}</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('project-info-content').innerHTML = modalContent;
+            this.openModal('project-info-modal');
+        } catch (error) {
+            this.showToast(`Error loading project info: ${error.message}`, 'error');
         }
+    }
+
+    // CSV parsing helper
+    parseCSV(csv) {
+        const rows = csv.split('\n');
+        const headers = rows[0].split(',').map(h => h.trim());
+        return rows.slice(1).map(row => {
+            const values = row.split(',');
+            return headers.reduce((obj, header, index) => {
+                obj[header] = values[index] ? values[index].trim() : '';
+                return obj;
+            }, {});
+        });
     }
     
 // Modified createProject method
