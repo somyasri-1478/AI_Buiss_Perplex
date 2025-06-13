@@ -1970,5 +1970,124 @@ input:checked + .slider:before {
     margin: 0.5rem 0 0;
     color: var(--color-text-secondary);
 }
+  /* Project Info Modal */
+.project-details {
+    padding: 1rem;
+}
+
+.detail-section {
+    background: var(--color-surface-elevated);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tag {
+    background: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+}
+
+.task-section {
+    margin-top: 2rem;
+}
+
+.task-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.task-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.task-phase {
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.priority-tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.priority-tag.high {
+    background: var(--color-error);
+    color: white;
+}
+
+.priority-tag.medium {
+    background: var(--color-warning);
+    color: white;
+}
+
+.priority-tag.low {
+    background: var(--color-success);
+    color: white;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-dot.completed {
+    background: var(--color-success);
+}
+
+.status-dot.in-progress {
+    background: var(--color-warning);
+}
+
+.status-dot.not-started {
+    background: var(--color-error);
+}
+
+.loading-spinner {
+    border: 3px solid rgba(var(--color-primary-rgb), 0.2);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 
 }
