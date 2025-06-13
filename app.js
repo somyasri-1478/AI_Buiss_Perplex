@@ -28,102 +28,13 @@ class ProductivityBeastApp {
         this.rawImportData = null;
         this.processedImportData = null;
         
-        // Sample data for team members (keeping existing team data)
-        this.teamMembers = [
-            {
-                "id": 1,
-                "name": "Sarah Johnson",
-                "email": "sarah.johnson@company.com",
-                "phone": "+1-555-0101",
-                "department": "Engineering",
-                "role": "Senior Developer",
-                "experienceLevel": "Senior",
-                "skills": ["React", "Node.js", "Python", "AWS"],
-                "specialization": "Full-Stack Development",
-                "currentWorkload": "High",
-                "status": "Active",
-                "joinDate": "2024-01-15",
-                "lastActivity": "2025-06-09",
-                "productivity": 92,
-                "tasksCompleted": 45,
-                "projectsCompleted": 8
-            },
-            {
-                "id": 2,
-                "name": "Michael Chen",
-                "email": "michael.chen@company.com",
-                "phone": "+1-555-0102",
-                "department": "Marketing",
-                "role": "Marketing Manager",
-                "experienceLevel": "Mid",
-                "skills": ["Digital Marketing", "SEO", "Analytics", "Content Strategy"],
-                "specialization": "Digital Marketing",
-                "currentWorkload": "Medium",
-                "status": "Active",
-                "joinDate": "2024-03-20",
-                "lastActivity": "2025-06-08",
-                "productivity": 87,
-                "tasksCompleted": 38,
-                "projectsCompleted": 6
-            },
-            {
-                "id": 3,
-                "name": "Emily Rodriguez",
-                "email": "emily.rodriguez@company.com",
-                "phone": "+1-555-0103",
-                "department": "Design",
-                "role": "UX Designer",
-                "experienceLevel": "Senior",
-                "skills": ["Figma", "User Research", "Prototyping", "Design Systems"],
-                "specialization": "User Experience Design",
-                "currentWorkload": "Medium",
-                "status": "Active",
-                "joinDate": "2023-11-10",
-                "lastActivity": "2025-06-09",
-                "productivity": 89,
-                "tasksCompleted": 42,
-                "projectsCompleted": 7
-            },
-            {
-                "id": 4,
-                "name": "David Kim",
-                "email": "david.kim@company.com",
-                "phone": "+1-555-0104",
-                "department": "Engineering",
-                "role": "DevOps Engineer",
-                "experienceLevel": "Senior",
-                "skills": ["Docker", "Kubernetes", "CI/CD", "Monitoring"],
-                "specialization": "Infrastructure & DevOps",
-                "currentWorkload": "High",
-                "status": "Active",
-                "joinDate": "2024-02-01",
-                "lastActivity": "2025-06-09",
-                "productivity": 94,
-                "tasksCompleted": 51,
-                "projectsCompleted": 9
-            },
-            {
-                "id": 5,
-                "name": "Lisa Thompson",
-                "email": "lisa.thompson@company.com",
-                "phone": "+1-555-0105",
-                "department": "Sales",
-                "role": "Sales Representative",
-                "experienceLevel": "Mid",
-                "skills": ["CRM", "Lead Generation", "Negotiation", "Presentation"],
-                "specialization": "B2B Sales",
-                "currentWorkload": "Medium",
-                "status": "Active",
-                "joinDate": "2024-04-15",
-                "lastActivity": "2025-06-08",
-                "productivity": 85,
-                "tasksCompleted": 36,
-                "projectsCompleted": 5
-            }
-        ];
+        // Team members from Google Sheets (replacing sample data)
+        this.teamMembers = [];
 
-        this.departments = ["Engineering", "Marketing", "Sales", "HR", "Design"];
-        this.experienceLevels = ["Junior", "Mid", "Senior", "Lead"];
+        // Dynamic data from Google Sheets
+        this.departments = [];
+        this.experienceLevels = [];
+        
         this.messageTemplates = [
             {
                 "name": "Meeting Reminder",
@@ -158,8 +69,10 @@ class ProductivityBeastApp {
 
     // Updated init method to load Google Sheets data
     async init() {
+        await this.loadTeamMembersData();
         await this.loadProjectsData();
         await this.loadAllotmentsData();
+        this.extractDynamicData();
         this.loadSettings();
         this.setupSettingsListeners();
         this.loadFromStorage();
@@ -171,6 +84,53 @@ class ProductivityBeastApp {
         setTimeout(() => {
             this.populateDropdowns();
         }, 100);
+    }
+
+    // New method to load team members from Google Sheets
+    async loadTeamMembersData() {
+        try {
+            const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTsLi6Dn4BW13GEaQIvG5Yk7ZlS7MwJjk6OTnTUbXM2sTtPt3gu4xlNWXyMVUG4iuIgxEzqc8_qlL8-/pub?gid=306022769&single=true&output=csv');
+            const csvData = await response.text();
+            this.teamMembers = this.parseTeamMembersCSV(csvData);
+        } catch (error) {
+            console.error('Error loading team members:', error);
+            this.showToast('Error loading team members from Google Sheets', 'error');
+        }
+    }
+
+    // New method to parse team members CSV
+    parseTeamMembersCSV(csv) {
+        const rows = csv.split('\n').slice(1); // Remove header
+        return rows.filter(row => row.trim()).map((row, index) => {
+            const columns = this.parseCSVRow(row);
+            return {
+                id: index + 1,
+                name: columns[0]?.trim() || '',
+                email: columns[1]?.trim() || '',
+                phone: columns[2]?.trim() || '',
+                department: columns[3]?.trim() || '',
+                role: columns[4]?.trim() || '',
+                experienceLevel: columns[5]?.trim() || '',
+                skills: columns[6] ? columns[6].split(',').map(skill => skill.trim()) : [],
+                specialization: columns[7]?.trim() || '',
+                currentWorkload: columns[8]?.trim() || 'Medium',
+                status: 'Active',
+                joinDate: new Date().toISOString().split('T')[0],
+                lastActivity: new Date().toISOString().split('T')[0],
+                productivity: 75 + Math.random() * 25,
+                tasksCompleted: Math.floor(Math.random() * 50) + 10,
+                projectsCompleted: Math.floor(Math.random() * 10) + 1
+            };
+        });
+    }
+
+    // Extract dynamic data from loaded team members
+    extractDynamicData() {
+        // Extract unique departments
+        this.departments = [...new Set(this.teamMembers.map(member => member.department).filter(dept => dept))];
+        
+        // Extract unique experience levels
+        this.experienceLevels = [...new Set(this.teamMembers.map(member => member.experienceLevel).filter(level => level))];
     }
 
     // New method to load projects from Google Sheets
@@ -286,11 +246,11 @@ class ProductivityBeastApp {
                 </div>
                 <div class="project-meta">
                     <div class="meta-item">
-                        <label>Due Date:</label>
-                        <span>${this.formatDate(project['Due Date'])}</span>
+                        <label class="meta-label">Due Date:</label>
+                        <span class="meta-value">${this.formatDate(project['Due Date'])}</span>
                     </div>
                     <div class="meta-item">
-                        <label>Skills Required:</label>
+                        <label class="meta-label">Skills Required:</label>
                         <div class="skills-list">
                             ${project['Required Skills'].split(',').map(skill => 
                                 `<span class="skill-tag">${skill.trim()}</span>`
@@ -436,6 +396,7 @@ class ProductivityBeastApp {
 
         this.projects.splice(projectIndex, 1);
         this.renderProjects();
+        this.populateProjectDropdown(); // Update project dropdown
         this.showToast('Project removed from view. Edit your Google Sheet to permanently delete.', 'warning');
     }
 
@@ -479,6 +440,7 @@ class ProductivityBeastApp {
             
             this.projects.push(projectForLocal);
             this.renderProjects();
+            this.populateProjectDropdown(); // Update project dropdown
             this.closeModal('create-project-modal');
             form.reset();
             this.showToast('Project created successfully and sent to workflow!', 'success');
@@ -500,6 +462,32 @@ class ProductivityBeastApp {
             'pending': 'warning'
         };
         return statusMap[status.toLowerCase()] || 'info';
+    }
+
+    // Method to populate project dropdown for team communication
+    populateProjectDropdown() {
+        const projectFilter = document.getElementById('project-member-filter');
+        if (projectFilter) {
+            // Clear existing options except the first one
+            while (projectFilter.children.length > 1) {
+                projectFilter.removeChild(projectFilter.lastChild);
+            }
+            
+            // Add projects
+            this.projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project['Project Name'];
+                option.textContent = project['Project Name'];
+                projectFilter.appendChild(option);
+            });
+        }
+    }
+
+    // Method to get project members
+    getProjectMembers(projectName) {
+        const tasks = this.allotments.filter(t => t.Project_Name === projectName);
+        const employeeNames = [...new Set(tasks.map(t => t.Assigned_Employee).filter(name => name))];
+        return this.teamMembers.filter(member => employeeNames.includes(member.name));
     }
 
     // Settings methods
@@ -701,7 +689,7 @@ class ProductivityBeastApp {
                     setTimeout(() => {
                         this.renderProjects();
                     }, 100);
-                } else if (section === 'analytics') {
+                } else if (section === 'dashboard') {
                     setTimeout(() => {
                         this.initializeAnalytics();
                     }, 100);
@@ -1244,8 +1232,7 @@ class ProductivityBeastApp {
         if (stored) {
             try {
                 const data = JSON.parse(stored);
-                // Only load team members from storage, projects come from Google Sheets
-                this.teamMembers = data.teamMembers || this.teamMembers;
+                // Only load user data from storage, team members come from Google Sheets
                 this.currentUser = data.currentUser || null;
             } catch (e) {
                 console.warn('Failed to load data from storage:', e);
@@ -1256,9 +1243,8 @@ class ProductivityBeastApp {
     saveToStorage() {
         try {
             const data = {
-                teamMembers: this.teamMembers,
                 currentUser: this.currentUser
-                // Don't save projects as they come from Google Sheets
+                // Don't save team members or projects as they come from Google Sheets
             };
             localStorage.setItem('productivityBeastData', JSON.stringify(data));
         } catch (e) {
@@ -1297,7 +1283,7 @@ class ProductivityBeastApp {
             if (document.getElementById('goals-section').classList.contains('active')) {
                 this.renderProjects();
             }
-            if (document.getElementById('analytics-section').classList.contains('active')) {
+            if (document.getElementById('dashboard-section').classList.contains('active')) {
                 this.initializeAnalytics();
             }
         }, 100);
@@ -1343,6 +1329,23 @@ class ProductivityBeastApp {
 
         // Modal controls
         this.setupModalListeners();
+
+        // Team communication listeners
+        this.setupTeamCommunicationListeners();
+    }
+
+    setupTeamCommunicationListeners() {
+        // Recipient selection
+        document.querySelectorAll('input[name="recipients"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const projectSelection = document.querySelector('.project-selection');
+                if (e.target.value === 'project') {
+                    projectSelection.style.display = 'block';
+                } else {
+                    projectSelection.style.display = 'none';
+                }
+            });
+        });
     }
 
     setupAnalyticsListeners() {
@@ -1892,6 +1895,9 @@ class ProductivityBeastApp {
                 templateSelect.appendChild(option);
             });
         }
+
+        // Populate project dropdown for team communication
+        this.populateProjectDropdown();
     }
 
     addMember(form) {
@@ -1923,7 +1929,6 @@ class ProductivityBeastApp {
         }
 
         this.teamMembers.push(newMember);
-        this.saveToStorage();
         this.renderMembers();
         this.closeModal('add-member-modal');
         form.reset();
@@ -1942,7 +1947,6 @@ class ProductivityBeastApp {
 
         this.teamMembers.splice(memberIndex, 1);
         this.selectedMembers.delete(memberId);
-        this.saveToStorage();
         this.renderMembers();
         this.showToast('Team member removed successfully!', 'success');
     }
@@ -1992,8 +1996,15 @@ class ProductivityBeastApp {
 
         if (recipients === 'all') {
             memberList = this.teamMembers;
-        } else {
+        } else if (recipients === 'selected') {
             memberList = this.teamMembers.filter(member => this.selectedMembers.has(member.id));
+        } else if (recipients === 'project') {
+            const projectName = document.getElementById('project-member-filter').value;
+            if (!projectName) {
+                this.showToast('Please select a project', 'error');
+                return;
+            }
+            memberList = this.getProjectMembers(projectName);
         }
 
         if (memberList.length === 0) {
@@ -2176,7 +2187,6 @@ class ProductivityBeastApp {
             importedCount++;
         });
 
-        this.saveToStorage();
         this.renderMembers();
         this.closeModal('bulk-import-modal');
         this.resetFileUpload();
